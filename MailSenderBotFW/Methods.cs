@@ -1,5 +1,4 @@
-﻿using MailSender;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using ExcelLibrary.SpreadSheet;
@@ -7,11 +6,11 @@ using System.Net.Mail;
 using System.IO;
 using System.Net;
 
-namespace MailSenderBotFW
+namespace MailSender
 {
     static class Methods
     {
-        private static void PresendCheck(string[] args)
+        public static void PresendCheck(string[] args)
         {
             if (String.IsNullOrEmpty(ShowBirthdayGivers(false, false)) || Configs.GetFiveDayMode() && (DateTime.Now.DayOfWeek == DayOfWeek.Sunday || DateTime.Now.DayOfWeek == DayOfWeek.Saturday))
             {
@@ -103,7 +102,7 @@ namespace MailSenderBotFW
             return result.Trim();
         }
 
-        private static void ReadConfig()
+        public static void ReadConfig()
         {
             Configs.SetConfigurations(new List<string>(File.ReadAllLines(Configs.GetConfigPath())));
             foreach (var item in Configs.GetConfigurations())
@@ -187,7 +186,7 @@ namespace MailSenderBotFW
             }
         }
 
-        private static void SendMessage(string reciever, string subject, string message, string[] args, bool enableLog)
+        public static void SendMessage(string reciever, string subject, string message, string[] args, bool enableLog)
         {
             try
             {
@@ -234,7 +233,7 @@ namespace MailSenderBotFW
             }
         }
 
-        private static void CreateConfig()
+        public static void CreateConfig()
         {
             Console.Write("Set sender e-mail: ");
             Configs.SetSenderEmail(Console.ReadLine());
@@ -390,7 +389,7 @@ namespace MailSenderBotFW
             return digit;
         }
 
-        static bool IsFileLocked(string filename)
+        private static bool IsFileLocked(string filename)
         {
             bool Locked = false;
             if (File.Exists(filename))
@@ -410,7 +409,7 @@ namespace MailSenderBotFW
             return Locked;
         }
 
-        static void ReadFile(string path, bool fiveDaysMode, string birthdayColumn, string employeeColumn)
+        private static void ReadFile(string path, bool fiveDaysMode, string birthdayColumn, string employeeColumn)
         {
             int bdColumn = Convert.ToInt32(birthdayColumn);
             int emColumn = Convert.ToInt32(employeeColumn);

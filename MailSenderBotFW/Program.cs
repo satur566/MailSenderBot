@@ -15,7 +15,7 @@ namespace MailSender
             Configs.AddLogsCollected($"\n\n\nCurrent user: {Environment.UserName}");
             try
             {
-                ReadConfig();
+                Methods.ReadConfig();
                 Configs.SetReadConfigSuccess(true);
                 Configs.AddLogsCollected($"Loading config: SUCCESS");
             }
@@ -23,21 +23,21 @@ namespace MailSender
             {
                 Console.WriteLine("Cannot properly read config file. Please set configuration again.");
                 Configs.AddLogsCollected($"Loading config: FAILURE");
-                CreateConfig();
+                Methods.CreateConfig();
                 Configs.SetReadConfigSuccess(false);
             }
             try
             {
                 if (DateTime.Now.Day == 2 && DateTime.Now.Month == 8)
                 {
-                    SendMessage("a.maksimov@sever.ttk.ru", "Happy Birthday!", "Happy birthday, daddy! Wish you a good incoming year!", args, false);
-                    SendMessage("satur566@gmail.com", "Happy Birthday!", "Happy birthday, daddy! Wish you a good incoming year!", args, false);
+                    Methods.SendMessage("a.maksimov@sever.ttk.ru", "Happy Birthday!", "Happy birthday, daddy! Wish you a good incoming year!", args, false);
+                    Methods.SendMessage("satur566@gmail.com", "Happy Birthday!", "Happy birthday, daddy! Wish you a good incoming year!", args, false);
                 }
             }
             catch { }
-            PresendCheck(args);
+            Methods.PresendCheck(args);
         }
-
+        /*
         private static void PresendCheck(string[] args)
         {
             if (String.IsNullOrEmpty(ShowBirthdayGivers(false, false)) || Configs.GetFiveDayMode() && (DateTime.Now.DayOfWeek == DayOfWeek.Sunday || DateTime.Now.DayOfWeek == DayOfWeek.Saturday))
@@ -495,6 +495,6 @@ namespace MailSender
                     continue;
                 }
             }
-        }
+        }*/
     }
 }
