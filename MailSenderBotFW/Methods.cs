@@ -1,43 +1,16 @@
-﻿using System;
-using System.Net.Mail;
-using System.Net;
-using System.IO;
-using ExcelLibrary.SpreadSheet;
+﻿using MailSender;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using ExcelLibrary.SpreadSheet;
+using System.Net.Mail;
+using System.IO;
+using System.Net;
 
-namespace MailSender
+namespace MailSenderBotFW
 {
-    class Program
+    static class Methods
     {
-        static void Main(string[] args)
-        {
-            Configs.AddLogsCollected($"\n\n\nCurrent user: {Environment.UserName}");
-            try
-            {
-                ReadConfig();
-                Configs.SetReadConfigSuccess(true);
-                Configs.AddLogsCollected($"Loading config: SUCCESS");
-            }
-            catch
-            {
-                Console.WriteLine("Cannot properly read config file. Please set configuration again.");
-                Configs.AddLogsCollected($"Loading config: FAILURE");
-                CreateConfig();
-                Configs.SetReadConfigSuccess(false);
-            }
-            try
-            {
-                if (DateTime.Now.Day == 2 && DateTime.Now.Month == 8)
-                {
-                    SendMessage("a.maksimov@sever.ttk.ru", "Happy Birthday!", "Happy birthday, daddy! Wish you a good incoming year!", args, false);
-                    SendMessage("satur566@gmail.com", "Happy Birthday!", "Happy birthday, daddy! Wish you a good incoming year!", args, false);
-                }
-            }
-            catch { }
-            PresendCheck(args);
-        }
-
         private static void PresendCheck(string[] args)
         {
             if (String.IsNullOrEmpty(ShowBirthdayGivers(false, false)) || Configs.GetFiveDayMode() && (DateTime.Now.DayOfWeek == DayOfWeek.Sunday || DateTime.Now.DayOfWeek == DayOfWeek.Saturday))
@@ -234,7 +207,7 @@ namespace MailSender
                 Client.Send(Message);
                 if (enableLog)
                 {
-                    Configs.AddLogsCollected($"Sending message: SUCCESS.");                    
+                    Configs.AddLogsCollected($"Sending message: SUCCESS.");
                     Configs.AddLogsCollected($"Conclusion: <br>" +
                         $"\n\t\t\t\t\t\tSender mail: {Configs.GetSenderEmail()}<br>" +
                         $"\n\t\t\t\t\t\tSender name: {Configs.GetSenderName()}<br>" +
