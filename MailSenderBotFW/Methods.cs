@@ -30,7 +30,7 @@ namespace MailSender
             }
             else
             {
-                Console.Write($"Conclusion:" +
+                Console.Write($"\nConclusion:" +
                     $"\nSender mail: {Configs.GetSenderEmail()}" +
                     $"\nSender name: {Configs.GetSenderName()}" +
                     $"\nReciever e-mail: {Configs.GetRecieverEmail()}" +
@@ -45,7 +45,7 @@ namespace MailSender
                 }
                 else
                 {
-                    Console.WriteLine("\nIs everything fine? (Y/N)");
+                    Console.Write("\nIs everything fine? (Y/N)");
                     switch (Console.ReadLine().ToLower())
                     {
                         case "y":
@@ -159,7 +159,15 @@ namespace MailSender
                         break;
                 }
             }
-            ReadFile(Configs.GetXlsPath(), Configs.GetFiveDayMode(), Configs.GetBirthdayColumnNumber(), Configs.GetEmployeeNameColumnNumber());
+            try
+            {
+                ReadFile(Configs.GetXlsPath(), Configs.GetFiveDayMode(), Configs.GetBirthdayColumnNumber(), Configs.GetEmployeeNameColumnNumber());
+                Configs.AddLogsCollected($"Reading xls: SUCCESS."); //Fix logging. Set try-catch into method.
+            }
+            catch
+            {
+                Configs.AddLogsCollected($"Reading xls: FAILURE.");
+            }
             CheckHtml();
         }
 
@@ -206,7 +214,7 @@ namespace MailSender
                 Client.Send(Message);
                 if (enableLog)
                 {
-                    Configs.AddLogsCollected($"Sending message: SUCCESS.");
+                    Configs.AddLogsCollected($"Sending message: SUCCESS."); //Log writing bug!
                     Configs.AddLogsCollected($"Conclusion: <br>" +
                         $"\n\t\t\t\t\t\tSender mail: {Configs.GetSenderEmail()}<br>" +
                         $"\n\t\t\t\t\t\tSender name: {Configs.GetSenderName()}<br>" +
@@ -250,8 +258,8 @@ namespace MailSender
             Configs.SetSenderUsername(Configs.GetSenderEmail());
             Configs.SetConfigurations("senderName=" + Configs.GetSenderName());
             Configs.AddLogsCollected($"Config: senderName={Configs.GetSenderName()}");
-            Configs.SetConfigurations("senderUsername=" + Configs.GetSenderUsername());
-            Configs.AddLogsCollected($"Config: senderUsername={Configs.GetSenderUsername()}");
+            Configs.SetConfigurations("senderUsername=" + Configs.GetSenderUsername()); //Probably useless.
+            Configs.AddLogsCollected($"Config: senderUsername={Configs.GetSenderUsername()}"); //Probably useless.
 
             Console.Write("Set reciever e-mail: ");
             Configs.SetRecieverEmail(Console.ReadLine());
@@ -467,6 +475,7 @@ namespace MailSender
                     continue;
                 }
             }
+
         }
     }
 }
