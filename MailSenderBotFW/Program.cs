@@ -15,7 +15,6 @@ namespace MailSender
             Configs.AddLogsCollected($"\n\n\nCurrent user: {Environment.UserName}");
             try
             {
-                Console.ReadKey();
                 ReadConfig();
                 Configs.SetReadConfigSuccess(true);
                 Configs.AddLogsCollected($"Loading config: SUCCESS");
