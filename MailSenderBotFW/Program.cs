@@ -12,22 +12,19 @@ namespace MailSender
     {
         static void Main(string[] args)
         {
-            File.AppendAllText(Configs.GetLogsPath(), $"\n\n\n\n{DateTime.Now} - Current user: {Environment.UserName}");
-            Configs.AddLogsCollected($"\n\n\n\n{DateTime.Now} - Current user: {Environment.UserName}");
+            Configs.AddLogsCollected($"\n\n\nCurrent user: {Environment.UserName}");
             try
             {
                 Console.ReadKey();
                 ReadConfig();
                 Configs.SetReadConfigSuccess(true);
-                File.AppendAllText(Configs.GetLogsPath(), $"\n{DateTime.Now} - Loading config: SUCCESS");
-                Configs.AddLogsCollected($"\n{DateTime.Now} - Loading config: SUCCESS");
+                Configs.AddLogsCollected($"Loading config: SUCCESS");
 
             }
             catch
             {
                 Console.WriteLine("Cannot properly read config file. Please set configuration again.");
-                File.AppendAllText(Configs.GetLogsPath(), $"\n{DateTime.Now} - Loading config: FAILURE");
-                Configs.AddLogsCollected($"\n{DateTime.Now} - Loading config: FAILURE");
+                Configs.AddLogsCollected($"Loading config: FAILURE");
                 CreateConfig();
                 Configs.SetReadConfigSuccess(false);
             }
@@ -50,18 +47,14 @@ namespace MailSender
                 Console.WriteLine("Today is day off");
                 if (String.IsNullOrEmpty(ShowBirthdayGivers(false, false)))
                 {
-                    File.AppendAllText(Configs.GetLogsPath(), $"\n{DateTime.Now} - Sending message: CANCELLED.");
-                    Configs.AddLogsCollected($"\n{DateTime.Now} - Sending message: CANCELLED.");
-                    File.AppendAllText(Configs.GetLogsPath(), $"\n{DateTime.Now} - Reason: employees don't have a birthday today.");
-                    Configs.AddLogsCollected($"\n{DateTime.Now} - Reason: employees don't have a birthday today.");
+                    Configs.AddLogsCollected($"Sending message: CANCELLED.");
+                    Configs.AddLogsCollected($"Reason: employees don't have a birthday today.");
                     SendLogs(args);
                 }
                 else
                 {
-                    File.AppendAllText(Configs.GetLogsPath(), $"\n{DateTime.Now} - Sending message: CANCELLED.");
-                    Configs.AddLogsCollected($"\n{DateTime.Now} - Sending message: CANCELLED.");
-                    File.AppendAllText(Configs.GetLogsPath(), $"\n{DateTime.Now} - Reason: today is a day off.");
-                    Configs.AddLogsCollected($"\n{DateTime.Now} - Reason: today is a day off.");
+                    Configs.AddLogsCollected($"Sending message: CANCELLED.");
+                    Configs.AddLogsCollected($"Reason: today is a day off.");
                     SendLogs(args);
                 }
             }
@@ -77,8 +70,7 @@ namespace MailSender
                 if (args.Contains<string>("-silent") && Configs.GetReadConfigSuccess())
                 {
                     SendMessage(Configs.GetRecieverEmail(), Configs.GetMessageSubject(), Configs.GetMessageText(), args, true);
-                    File.AppendAllText(Configs.GetLogsPath(), $"\n{DateTime.Now} - Sending message mode: silent");
-                    Configs.AddLogsCollected($"\n{DateTime.Now} - Sending message mode: silent");
+                    Configs.AddLogsCollected($"Sending message mode: silent");
                     SendLogs(args);
                 }
                 else
@@ -91,10 +83,8 @@ namespace MailSender
                             SendLogs(args);
                             break;
                         default:
-                            File.AppendAllText(Configs.GetLogsPath(), $"\n{DateTime.Now} - Sending message: CANCELLED.");
-                            Configs.AddLogsCollected($"\n{DateTime.Now} - Sending message: CANCELLED.");
-                            File.AppendAllText(Configs.GetLogsPath(), $"\n{DateTime.Now} - Reason: user cancel.");
-                            Configs.AddLogsCollected($"\n{DateTime.Now} - Reason: user cancel.");
+                            Configs.AddLogsCollected($"Sending message: CANCELLED.");
+                            Configs.AddLogsCollected($"Reason: user cancel.");
                             SendLogs(args);
                             break;
                     }
@@ -208,8 +198,7 @@ namespace MailSender
             if (File.ReadAllText(Configs.GetHtmlPath()).Contains("%LIST_OF_EMPLOYEES%"))
             {
                 Configs.SetMessageText(File.ReadAllText(Configs.GetHtmlPath()).Replace("%LIST_OF_EMPLOYEES%", Employees.GetCongratulationsString()));
-                File.AppendAllText(Configs.GetLogsPath(), $"\n{DateTime.Now} - Reading html: SUCCESS.");
-                Configs.AddLogsCollected($"\n{DateTime.Now} - Reading html: SUCCESS.");
+                Configs.AddLogsCollected($"Reading html: SUCCESS.");
             }
             else
             {
@@ -217,12 +206,10 @@ namespace MailSender
                 switch (Console.ReadLine().ToLower())
                 {
                     case "y":
-                        File.AppendAllText(Configs.GetLogsPath(), $"\n{DateTime.Now} - Reading html: SUCCESS.\n{DateTime.Now} - Html file dous not contain list of employees.");
-                        Configs.AddLogsCollected($"\n{DateTime.Now} - Reading html: SUCCESS.\n{DateTime.Now} - Html file dous not contain list of employees.");
+                        Configs.AddLogsCollected($"Reading html: SUCCESS.Html file dous not contain list of employees.");
                         break;
                     default:
-                        File.AppendAllText(Configs.GetLogsPath(), $"\n{DateTime.Now} - Reading html: FAILURE.");
-                        Configs.AddLogsCollected($"\n{DateTime.Now} - Reading html: FAILURE.");
+                        Configs.AddLogsCollected($"Reading html: FAILURE.");
                         Environment.Exit(0);
                         break;
                 }
@@ -249,15 +236,8 @@ namespace MailSender
                 Client.Send(Message);
                 if (enableLog)
                 {
-                    File.AppendAllText(Configs.GetLogsPath(), $"\n{DateTime.Now} - Sending message: SUCCESS.");
-                    Configs.AddLogsCollected($"\n{DateTime.Now} - Sending message: SUCCESS.");
-                    File.AppendAllText(Configs.GetLogsPath(), $"\n{DateTime.Now} - Conclusion: " +
-                        $"\n\t\t\t\t\t\tSender mail: {Configs.GetSenderEmail()}" +
-                        $"\n\t\t\t\t\t\tSender name: {Configs.GetSenderName()}" +
-                        $"\n\t\t\t\t\t\tReciever e-mail: {Configs.GetRecieverEmail()}" +
-                        $"\n\t\t\t\t\t\t" +
-                        $"\n\t\t\t\t\t\t{ShowBirthdayGivers(true, false)}\n");
-                    Configs.AddLogsCollected($"\n{DateTime.Now} - Conclusion: <br>" +
+                    Configs.AddLogsCollected($"Sending message: SUCCESS.");                    
+                    Configs.AddLogsCollected($"Conclusion: <br>" +
                         $"\n\t\t\t\t\t\tSender mail: {Configs.GetSenderEmail()}<br>" +
                         $"\n\t\t\t\t\t\tSender name: {Configs.GetSenderName()}<br>" +
                         $"\n\t\t\t\t\t\tReciever e-mail: {Configs.GetRecieverEmail()}<br>" +
@@ -268,8 +248,7 @@ namespace MailSender
             catch
             {
                 Console.WriteLine("There are some errors occured, while trying to send message.\nWould you like to reconfigure me? (y/n)");
-                File.AppendAllText(Configs.GetLogsPath(), $"\n{DateTime.Now} - Sending message: FAILURE.");
-                Configs.AddLogsCollected($"\n{DateTime.Now} - Sending message: FAILURE.");
+                Configs.AddLogsCollected($"Sending message: FAILURE.");
                 switch (Console.ReadLine().ToLower())
                 {
                     case "y":
@@ -289,72 +268,60 @@ namespace MailSender
             Console.Write("Set sender e-mail: ");
             Configs.SetSenderEmail(Console.ReadLine());
             Configs.SetConfigurations("senderEmail=" + Configs.GetSenderEmail());
-            File.AppendAllText(Configs.GetLogsPath(), $"\n{DateTime.Now} - Config: senderEmail={Configs.GetSenderEmail()}");
-            Configs.AddLogsCollected($"\n{DateTime.Now} - Config: senderEmail={Configs.GetSenderEmail()}");
+            Configs.AddLogsCollected($"Config: senderEmail={Configs.GetSenderEmail()}");
 
             Console.Write("Set sender password: ");
             Configs.SetSenderPassword(Console.ReadLine()); //TODO: password enter with mask.
             Configs.SetConfigurations("senderPassword=" + Configs.GetSenderPassword());
-            File.AppendAllText(Configs.GetLogsPath(), $"\n{DateTime.Now} - Config: senderPassword={Configs.GetSenderPassword()}");
-            Configs.AddLogsCollected($"\n{DateTime.Now} - Config: senderPassword={Configs.GetSenderPassword()}");
+            Configs.AddLogsCollected($"Config: senderPassword={Configs.GetSenderPassword()}");
 
             Console.Write("Set sender displayed name: ");
             Configs.SetSenderName(Console.ReadLine());
             Configs.SetSenderUsername(Configs.GetSenderEmail());
             Configs.SetConfigurations("senderName=" + Configs.GetSenderName());
-            File.AppendAllText(Configs.GetLogsPath(), $"\n{DateTime.Now} - Config: senderName={Configs.GetSenderName()}");
-            Configs.AddLogsCollected($"\n{DateTime.Now} - Config: senderName={Configs.GetSenderName()}");
+            Configs.AddLogsCollected($"Config: senderName={Configs.GetSenderName()}");
             Configs.SetConfigurations("senderUsername=" + Configs.GetSenderUsername());
-            File.AppendAllText(Configs.GetLogsPath(), $"\n{DateTime.Now} - Config: senderUsername={Configs.GetSenderUsername()}");
-            Configs.AddLogsCollected($"\n{DateTime.Now} - Config: senderUsername={Configs.GetSenderUsername()}");
+            Configs.AddLogsCollected($"Config: senderUsername={Configs.GetSenderUsername()}");
 
             Console.Write("Set reciever e-mail: ");
             Configs.SetRecieverEmail(Console.ReadLine());
             Configs.SetConfigurations("recieverEmail=" + Configs.GetRecieverEmail());
-            File.AppendAllText(Configs.GetLogsPath(), $"\n{DateTime.Now} - Config: recieverEmail={Configs.GetRecieverEmail()}");
-            Configs.AddLogsCollected($"\n{DateTime.Now} - Config: recieverEmail={Configs.GetRecieverEmail()}");
+            Configs.AddLogsCollected($"Config: recieverEmail={Configs.GetRecieverEmail()}");
 
             Console.Write("Set message subject: ");
             Configs.SetMessageSubject(Console.ReadLine());
             Configs.SetConfigurations("messageSubject=" + Configs.GetMessageSubject());
-            File.AppendAllText(Configs.GetLogsPath(), $"\n{DateTime.Now} - Config: messageSubject={Configs.GetMessageSubject()}");
-            Configs.AddLogsCollected($"\n{DateTime.Now} - Config: messageSubject={Configs.GetMessageSubject()}");
+            Configs.AddLogsCollected($"Config: messageSubject={Configs.GetMessageSubject()}");
 
             Configs.SetHtmlPath(IsFileExist("html"));
             Configs.SetConfigurations("htmlPath=" + Configs.GetHtmlPath());
-            File.AppendAllText(Configs.GetLogsPath(), $"\n{DateTime.Now} - Config: htmlPath={Configs.GetHtmlPath()}");
-            Configs.AddLogsCollected($"\n{DateTime.Now} - Config: htmlPath={Configs.GetHtmlPath()}");
+            Configs.AddLogsCollected($"Config: htmlPath={Configs.GetHtmlPath()}");
 
             Configs.SetMessageText(File.ReadAllText(Configs.GetHtmlPath()));
 
             Configs.SetXlsPath(IsFileExist("xls"));
             Configs.SetConfigurations("xlsPath=" + Configs.GetXlsPath());
-            File.AppendAllText(Configs.GetLogsPath(), $"\n{DateTime.Now} - Config: xlsPath={Configs.GetXlsPath()}");
-            Configs.AddLogsCollected($"\n{DateTime.Now} - Config: xlsPath={Configs.GetXlsPath()}");
+            Configs.AddLogsCollected($"Config: xlsPath={Configs.GetXlsPath()}");
 
             Console.Write("Set a number of column contains birthday dates: ");
             Configs.SetBirthdayColumnNumber(IsDigit(false));
             Configs.SetConfigurations("birthdayColumnNumber=" + Configs.GetBirthdayColumnNumber());
-            File.AppendAllText(Configs.GetLogsPath(), $"\n{DateTime.Now} - Config: birthdayColumnNumber={Configs.GetBirthdayColumnNumber()}");
-            Configs.AddLogsCollected($"\n{DateTime.Now} - Config: birthdayColumnNumber={Configs.GetBirthdayColumnNumber()}");
+            Configs.AddLogsCollected($"Config: birthdayColumnNumber={Configs.GetBirthdayColumnNumber()}");
 
             Console.Write("Set a number of column contains employees names: ");
             Configs.SetEmployeeNameColumnNumber(IsDigit(false));
             Configs.SetConfigurations("employeeNameColumnNumber=" + Configs.GetEmployeeNameColumnNumber());
-            File.AppendAllText(Configs.GetLogsPath(), $"\n{DateTime.Now} - Config: employeeNameColumnNumber={Configs.GetEmployeeNameColumnNumber()}");
-            Configs.AddLogsCollected($"\n{DateTime.Now} - Config: employeeNameColumnNumber={Configs.GetEmployeeNameColumnNumber()}");
+            Configs.AddLogsCollected($"Config: employeeNameColumnNumber={Configs.GetEmployeeNameColumnNumber()}");
 
             Console.Write("Set server address: ");
             Configs.SetServerAddress(Console.ReadLine());
             Configs.SetConfigurations("serverAddress=" + Configs.GetServerAddress());
-            File.AppendAllText(Configs.GetLogsPath(), $"\n{DateTime.Now} - Config: serverAddress={Configs.GetServerAddress()}");
-            Configs.AddLogsCollected($"\n{DateTime.Now} - Config: serverAddress={Configs.GetServerAddress()}");
+            Configs.AddLogsCollected($"Config: serverAddress={Configs.GetServerAddress()}");
 
             Console.Write("Set server port (if default - leave empty): ");
             Configs.SetServerPort(IsDigit(true));
             Configs.SetConfigurations("serverPort=" + Configs.GetServerPort());
-            File.AppendAllText(Configs.GetLogsPath(), $"\n{DateTime.Now} - Config: serverPort={Configs.GetServerPort()}");
-            Configs.AddLogsCollected($"\n{DateTime.Now} - Config: serverPort={Configs.GetServerPort()}");
+            Configs.AddLogsCollected($"Config: serverPort={Configs.GetServerPort()}");
 
             Console.WriteLine("Use 5/2 workmode?(yes) \nOtherwise will be user full week mode");
             switch (Console.ReadLine().ToLower())
@@ -368,8 +335,7 @@ namespace MailSender
                     break;
             }
             Configs.SetConfigurations("fiveDaysMode=" + Configs.GetFiveDayMode());
-            File.AppendAllText(Configs.GetLogsPath(), $"\n{DateTime.Now} - Config: fiveDaysMode={Configs.GetFiveDayMode()}");
-            Configs.AddLogsCollected($"\n{DateTime.Now} - Config: fiveDaysMode={Configs.GetFiveDayMode()}");
+            Configs.AddLogsCollected($"Config: fiveDaysMode={Configs.GetFiveDayMode()}");
 
             Console.Write("Set logs recievers: ");
             string recieversString = Console.ReadLine();
@@ -379,31 +345,26 @@ namespace MailSender
                 Configs.SetLogRecievers(reciever.Trim());
             }
             Configs.SetConfigurations("logRecievers=" + recieversString);
-            File.AppendAllText(Configs.GetLogsPath(), $"\n{DateTime.Now} - Config: logRecievers=" + recieversString);
             Configs.AddLogsCollected("logRecievers=" + recieversString);
 
             try
             {
                 File.WriteAllText(Configs.GetConfigPath(), string.Empty);
                 File.WriteAllLines(Configs.GetConfigPath(), Configs.GetConfigurations().ToArray());
-                File.AppendAllText(Configs.GetLogsPath(), $"\n{DateTime.Now} - Config save: SUCCESS.");
-                Configs.AddLogsCollected($"\n{DateTime.Now} - Config save: SUCCESS.");
+                Configs.AddLogsCollected($"Config save: SUCCESS.");
             }
             catch
             {
-                File.AppendAllText(Configs.GetLogsPath(), $"\n{DateTime.Now} - Config save: FAILURE.");
-                Configs.AddLogsCollected($"\n{DateTime.Now} - Config save: FAILURE.");
+                Configs.AddLogsCollected($"Config save: FAILURE.");
             }
             try
             {
                 ReadFile(Configs.GetXlsPath(), Configs.GetFiveDayMode(), Configs.GetBirthdayColumnNumber(), Configs.GetEmployeeNameColumnNumber());
-                File.AppendAllText(Configs.GetLogsPath(), $"\n{DateTime.Now} - Reading xls: SUCCESS.");
-                Configs.AddLogsCollected($"\n{DateTime.Now} - Reading xls: SUCCESS.");
+                Configs.AddLogsCollected($"Reading xls: SUCCESS.");
             }
             catch
             {
-                File.AppendAllText(Configs.GetLogsPath(), $"\n{DateTime.Now} - Reading xls: FAILURE.");
-                Configs.AddLogsCollected($"\n{DateTime.Now} - Reading xls: FAILURE.");
+                Configs.AddLogsCollected($"Reading xls: FAILURE.");
             }
 
             CheckHtml();

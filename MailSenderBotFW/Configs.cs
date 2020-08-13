@@ -224,7 +224,8 @@ namespace MailSender
         }
         public static void AddLogsCollected(string log)
         {
-            logsCollected = String.Concat(logsCollected, log) + "<br>";
+            File.AppendAllText(Configs.GetLogsPath(), log);
+            logsCollected = String.Concat($"\n{DateTime.Now} - " + logsCollected, log) + " <br>";
         }
 
         public static List<string> GetLogRecievers()
