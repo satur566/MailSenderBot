@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace MailSender
 {
@@ -233,6 +234,6 @@ namespace MailSender
         public static void SetLogRecievers(string reciever)
         {
             logRecievers.Add(reciever);
-        }
+        }      
     }
 }

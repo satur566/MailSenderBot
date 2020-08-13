@@ -536,7 +536,6 @@ namespace MailSender
                     continue;
                 }
             }
-            Employees.SetCongratulationsString(Employees.GetWhosBirthdayIs());
         }
     }
 }

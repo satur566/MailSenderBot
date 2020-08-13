@@ -19,14 +19,11 @@ namespace MailSender
 
         public static string GetCongratulationsString()
         {
-            return congratulationsString;
-        }
-        public static void SetCongratulationsString(List<string> list)
-        {
-            foreach (var item in list)
+            foreach (var item in whosBirthdayIs)
             {
                 congratulationsString += item.Trim() + "<br>";
             }
+            return congratulationsString;
         }
     }
 }
