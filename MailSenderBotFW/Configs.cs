@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 
 namespace MailSender
 {
@@ -25,7 +24,7 @@ namespace MailSender
         private static string employeeNameColumnNumber;
         private static bool readConfigSuccess;
         private static readonly List<string> logRecievers = new List<string>();
-        private static string logsCollected = "";
+        private static string logsCollected = ""; //TODO: add IsSSL and IsHtml
 
 
         public static string GetSenderEmail()

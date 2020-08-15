@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Net.Mail;
-using System.Net;
 using System.IO;
-using ExcelLibrary.SpreadSheet;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace MailSender
 {
@@ -12,7 +7,7 @@ namespace MailSender
     {
         static void Main(string[] args)
         {
-            Configs.AddLogsCollected($"\n\n\nCurrent user: {Environment.UserName}");
+            Configs.AddLogsCollected($"\n\n\nCurrent user: {Environment.UserName}");            
             try
             {
                 Methods.ReadConfig();                                
@@ -36,12 +31,10 @@ namespace MailSender
                 Methods.ConfigWriter("text", "messageSubject", Console.ReadLine());
 
                 Console.Write($"Set a path to html file: ");
-                Methods.ConfigWriter("file", "htmlPath", Console.ReadLine()); //Remade IsFileExist
-
-                Configs.SetMessageText(File.ReadAllText(Configs.GetHtmlPath())); //Throw somewhere
+                Methods.ConfigWriter("html", "htmlPath", Console.ReadLine()); //Remade IsFileExist                
 
                 Console.Write($"Set a path to xls file: ");
-                Methods.ConfigWriter("file", "xlsPath", Console.ReadLine()); //Remade IsFileExist
+                Methods.ConfigWriter("xls", "xlsPath", Console.ReadLine()); //Remade IsFileExist
 
                 Console.Write("Set a number of column contains birthday dates: ");
                 Methods.ConfigWriter("digit", "birthdayColumnNumber", Console.ReadLine()); //Remade IsDigit            

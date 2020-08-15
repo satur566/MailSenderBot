@@ -26,6 +26,7 @@ namespace MailSender
             }
             else
             {
+                Configs.SetMessageText(File.ReadAllText(Configs.GetHtmlPath())); //Throw somewhere
                 Console.Write($"\nConclusion:" +
                     $"\nSender mail: {Configs.GetSenderEmail()}" +
                     $"\nSender name: {Configs.GetSenderName()}" +
@@ -228,8 +229,9 @@ namespace MailSender
                 */
             }
         }
-        public static void ConfigWriter(string type, string parameter, string value) 
+        public static void ConfigWriter(string type, string parameter, string value) //TODO: return value.
         {
+            string fileType = value.Substring(value.LastIndexOf('.') + 1, value.Length - value.LastIndexOf('.') - 1);
             switch (type)
             {
                 case "digit":
@@ -248,16 +250,21 @@ namespace MailSender
                         value = "";
                     }                    
                     break;
-                case "file":
-                    string fileType = value.Substring(value.LastIndexOf('.'), value.Length - value.LastIndexOf('.'));
-                    if (File.Exists(value))
-                    {
-                        if (!File.ReadAllText(value).Contains("%LIST_OF_EMPLOYEES%") && fileType != "xls")
+                case "html":                    
+                    if (File.Exists(value) && fileType.ToLower().Equals("html"))
+                    {                        
+                        if (!File.ReadAllText(value).Contains("%LIST_OF_EMPLOYEES%"))
                         {
                             value = "";
                         }
                     }
                     else
+                    {
+                        value = "";
+                    }
+                    break;
+                case "xls":                    
+                    if (!File.Exists(value) || !fileType.ToLower().Equals("xls"))
                     {
                         value = "";
                     }
