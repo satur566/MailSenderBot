@@ -26,33 +26,19 @@ namespace MailSender
             }
             else
             {
-                Configs.SetMessageText(File.ReadAllText(Configs.GetHtmlPath())); //Throw somewhere
-                Console.Write($"\nConclusion:" +
+                Configs.SetMessageText(File.ReadAllText(Configs.GetHtmlPath()));
+                /*Console.Write($"\nConclusion:" +
                     $"\nSender mail: {Configs.GetSenderEmail()}" +
                     $"\nSender name: {Configs.GetSenderName()}" +
                     $"\nReciever e-mail: {Configs.GetRecieverEmail()}" +
                     $"\n" +
-                    $"\n{ShowBirthdayGivers(false, false)}\n");
+                    $"\n{ShowBirthdayGivers(false, false)}\n");*/ //TODO: Conclusion method.
 
-                if (Configs.GetReadConfigSuccess() && args.Contains<string>("-silent"))
+                if (Configs.GetReadConfigSuccess() && args.Contains<string>("-silent")) //TODO: silent mode is OK
                 {
                     SendMessage(Configs.GetRecieverEmail(), Configs.GetMessageSubject(), Configs.GetMessageText(), args, true);
                     Configs.AddLogsCollected($"Sending message mode: silent");                    
-                }
-                else
-                {
-                    Console.Write("\nIs everything fine? (Y/N)");
-                    switch (Console.ReadLine().ToLower())
-                    {
-                        case "y":
-                            SendMessage(Configs.GetRecieverEmail(), Configs.GetMessageSubject(), Configs.GetMessageText(), args, true);
-                            break;
-                        default:
-                            Configs.AddLogsCollected($"Sending message: CANCELLED.");
-                            Configs.AddLogsCollected($"Reason: user cancel.");
-                            break;
-                    }
-                }
+                }               
             }
             SendLogs(args);
         }
@@ -98,54 +84,53 @@ namespace MailSender
             return result.Trim();
         }
 
-        public static void ReadConfig()
+        public static void LoadConfig() //TODO: Is all config loaded?
         {
             Configs.SetConfigurations(new List<string>(File.ReadAllLines(Configs.GetConfigPath())));
             foreach (var item in Configs.GetConfigurations())
             {
-                switch (item.Substring(0, item.IndexOf('=')))
+                string parameter = item.Substring(0, item.IndexOf('='));
+                string value = item.Substring(item.IndexOf('=') + 1, item.Length - item.IndexOf('=') - 1);
+                switch (parameter)
                 {
                     case "senderEmail":
-                        Configs.SetSenderEmail(item.Substring(item.IndexOf('=') + 1, item.Length - item.IndexOf('=') - 1));
+                        Configs.SetSenderEmail(value);
                         break;
                     case "senderPassword":
-                        Configs.SetSenderPassword(item.Substring(item.IndexOf('=') + 1, item.Length - item.IndexOf('=') - 1));
+                        Configs.SetSenderPassword(value);
                         break;
                     case "senderName":
-                        Configs.SetSenderName(item.Substring(item.IndexOf('=') + 1, item.Length - item.IndexOf('=') - 1));
-                        break;
-                    case "senderUsername":
-                        Configs.SetSenderUsername(item.Substring(item.IndexOf('=') + 1, item.Length - item.IndexOf('=') - 1));
+                        Configs.SetSenderName(value);
                         break;
                     case "recieverEmail":
-                        Configs.SetRecieverEmail(item.Substring(item.IndexOf('=') + 1, item.Length - item.IndexOf('=') - 1));
+                        Configs.SetRecieverEmail(value);
                         break;
                     case "messageSubject":
-                        Configs.SetMessageSubject(item.Substring(item.IndexOf('=') + 1, item.Length - item.IndexOf('=') - 1));
+                        Configs.SetMessageSubject(value);
                         break;
                     case "htmlPath":
-                        Configs.SetHtmlPath(item.Substring(item.IndexOf('=') + 1, item.Length - item.IndexOf('=') - 1));
+                        Configs.SetHtmlPath(value);
                         break;
                     case "xlsPath":
-                        Configs.SetXlsPath(item.Substring(item.IndexOf('=') + 1, item.Length - item.IndexOf('=') - 1));
+                        Configs.SetXlsPath(value);
                         break;
                     case "birthdayColumnNumber":
-                        Configs.SetBirthdayColumnNumber(item.Substring(item.IndexOf('=') + 1, item.Length - item.IndexOf('=') - 1));
+                        Configs.SetBirthdayColumnNumber(value);
                         break;
                     case "employeeNameColumnNumber":
-                        Configs.SetEmployeeNameColumnNumber(item.Substring(item.IndexOf('=') + 1, item.Length - item.IndexOf('=') - 1));
+                        Configs.SetEmployeeNameColumnNumber(value);
                         break;
                     case "serverAddress":
-                        Configs.SetServerAddress(item.Substring(item.IndexOf('=') + 1, item.Length - item.IndexOf('=') - 1));
+                        Configs.SetServerAddress(value);
                         break;
                     case "serverPort":
-                        Configs.SetServerPort(item.Substring(item.IndexOf('=') + 1, item.Length - item.IndexOf('=') - 1));
+                        Configs.SetServerPort(value);
                         break;
                     case "fiveDaysMode":
-                        Configs.SetFiveDayMode(Boolean.TryParse(item.Substring(item.IndexOf('=') + 1, item.Length - item.IndexOf('=') - 1), out _));
+                        Configs.SetFiveDayMode(Boolean.TryParse(value, out _));
                         break;
                     case "logRecievers":
-                        string[] recievers = item.Substring(item.IndexOf('=') + 1, item.Length - item.IndexOf('=') - 1).Split(',');
+                        string[] recievers = value.Split(',');
                         foreach (var reciever in recievers)
                         {
                             Configs.SetLogRecievers(reciever.Trim());
@@ -215,24 +200,12 @@ namespace MailSender
             catch
             {
                 Configs.AddLogsCollected($"Sending message: FAILURE.");
-                /*Console.WriteLine("There are some errors occured, while trying to send message.\nWould you like to reconfigure me? (y/n)");               
-                switch (Console.ReadLine().ToLower())
-                {
-                    case "y":
-                    case "yes":
-                        CreateConfig();
-                        SendMail(args);
-                        break;
-                    default:
-                        break;
-                }
-                */
             }
         }
-        public static void ConfigWriter(string type, string parameter, string value) //TODO: return value.
+        public static void EditConfig(string type, string parameter, string value) //TODO: return value.
         {
-            string fileType = value.Substring(value.LastIndexOf('.') + 1, value.Length - value.LastIndexOf('.') - 1);
-            switch (type)
+            string fileType = value.Substring(value.LastIndexOf('.') + 1, value.Length - value.LastIndexOf('.') - 1); //TODO: under html/xls
+            switch (type) //TODO: switch parameter multicase for only text values etc.
             {
                 case "digit":
                     if (!Int32.TryParse(value, out _))
@@ -243,7 +216,7 @@ namespace MailSender
                 case "port":
                     if (string.IsNullOrEmpty(value) || string.IsNullOrWhiteSpace(value))
                     {
-                        value = "";
+                        value = "25";
                     } 
                     else if (!Int32.TryParse(value, out _))
                     {
@@ -269,7 +242,17 @@ namespace MailSender
                         value = "";
                     }
                     break;
-                case "password":
+                case "password": //TODO: encode.
+
+                    break;
+                case "y/n": //TODO this!
+                    if (value.ToLower() == "yes" || value.ToLower() == "y")
+                    {
+                        value = "True";
+                    } else
+                    {
+                        value = "False";
+                    }
                     break;
                 default:
                     break;
@@ -278,56 +261,8 @@ namespace MailSender
             Configs.AddLogsCollected($"Config: " + parameter + "=" + value);
         }
 
-        public static void WriteConfig()
-        {            
-            Console.Write("Set sender e-mail: ");
-            ConfigWriter("text", "senderEmail", Console.ReadLine());
-
-            Console.Write("Set sender password: ");
-            ConfigWriter("password", "senderPassword", Console.ReadLine()); //TODO: password enter with mask.
-
-            Console.Write("Set sender displayed name: ");
-            ConfigWriter("text", "senderName", Console.ReadLine());            
-
-            Console.Write("Set reciever e-mail: ");
-            ConfigWriter("text", "recieverEmail", Console.ReadLine());            
-
-            Console.Write("Set message subject: ");
-            ConfigWriter("text", "messageSubject", Console.ReadLine());
-
-            Console.Write($"Set a path to html file: ");
-            ConfigWriter("file", "htmlPath", IsFileExist("html")); //Remade IsFileExist
-
-            Configs.SetMessageText(File.ReadAllText(Configs.GetHtmlPath())); //Throw somewhere
-
-            Console.Write($"Set a path to xls file: ");
-            ConfigWriter("file", "xlsPath", IsFileExist("xls")); //Remade IsFileExist
-
-            Console.Write("Set a number of column contains birthday dates: ");
-            ConfigWriter("digit", "birthdayColumnNumber", IsDigit(false)); //Remade IsDigit            
-
-            Console.Write("Set a number of column contains employees names: ");
-            ConfigWriter("digit", "employeeNameColumnNumber", IsDigit(false)); //Remade IsDigit    
-
-            Console.Write("Set server address: ");
-            ConfigWriter("text", "serverAddress", Console.ReadLine());
-
-            Console.Write("Set server port (if default - leave empty): ");
-            ConfigWriter("digit", "serverPort", IsDigit(true)); //Remade IsDigit     
-
-            Console.WriteLine("Use 5/2 workmode?(yes) \nOtherwise will be user full week mode");
-            ConfigWriter("text", "fiveDaysMode", Console.ReadLine()); //TODO: ConfigWriter remade for this. (yes/no)
-
-            Console.Write("Set logs recievers: ");
-            ConfigWriter("text", "logRecievers", Console.ReadLine()); //TODO: ConfigWriter remade for this.
-            /*
-            string recieversString = Console.ReadLine();
-            string[] recievers = recieversString.Split(',');
-            foreach (var reciever in recievers)
-            {
-                Configs.SetLogRecievers(reciever.Trim());
-            }
-            */
+        public static void SaveConfig()
+        {                        
             try
             {
                 File.WriteAllText(Configs.GetConfigPath(), string.Empty);
@@ -338,61 +273,13 @@ namespace MailSender
             {
                 Configs.AddLogsCollected($"Config save: FAILURE.");
             }
-            ReadXlsFile(Configs.GetXlsPath(), Configs.GetFiveDayMode(), Configs.GetBirthdayColumnNumber(), Configs.GetEmployeeNameColumnNumber());
+            ReadXlsFile(Configs.GetXlsPath(), Configs.GetFiveDayMode(), Configs.GetBirthdayColumnNumber(), Configs.GetEmployeeNameColumnNumber()); //TODO: only saveConfig methods.
             ReadHtmlFile(Configs.GetHtmlPath(), Employees.GetCongratulationsString());
-            ReadConfig();
+            LoadConfig();
             Configs.SetReadConfigSuccess(false);            
-        }
+        }        
 
-        private static string IsFileExist(string fileType)
-        {
-            string pathToFile;
-            while (true)
-            {                
-                pathToFile = Console.ReadLine();
-                if (File.Exists(pathToFile) && pathToFile.EndsWith(fileType))
-                {
-                    if (File.ReadAllText(pathToFile).Contains("%LIST_OF_EMPLOYEES%") || fileType == "xls")
-                    {
-                        break;
-                    }
-                    else
-                    {
-                        Console.WriteLine("HTML file should have %LIST_OF_EMPLOYEES% string. Current file has no such string.");
-                    }
-                }
-                else
-                {
-                    Console.WriteLine($"There are no {fileType} file with such name.");
-                }
-            }
-            return pathToFile;
-        }
-
-        private static string IsDigit(bool isPort)
-        {
-            string digit;
-            while (true)
-            {
-                digit = Console.ReadLine();
-                if (Int32.TryParse(digit, out _))
-                {
-                    break;
-                }
-                else if (isPort && string.IsNullOrEmpty(digit) || string.IsNullOrWhiteSpace(digit))
-                {
-                    digit = "25";
-                    break;
-                }
-                else
-                {
-                    Console.WriteLine("Please, use only digits.");
-                }
-            }
-            return digit;
-        }
-
-        private static bool IsFileLocked(string filename)
+        /*private static bool IsFileLocked(string filename)
         {
             bool Locked = false;
             if (File.Exists(filename))
@@ -410,9 +297,9 @@ namespace MailSender
                 }
             }
             return Locked;
-        }
+        }*/
 
-        public static void ReadXlsFile(string path, bool fiveDaysMode, string birthdayColumn, string employeeColumn)
+        public static void ReadXlsFile(string path, bool fiveDaysMode, string birthdayColumn, string employeeColumn) //TODO: read through locked file. 
         {
             try
             {
@@ -420,11 +307,6 @@ namespace MailSender
                 int emColumn = Convert.ToInt32(employeeColumn);
                 bdColumn--;
                 emColumn--;
-                while (IsFileLocked(path))
-                {
-                    Console.WriteLine("xls file is opened in another application. Please close that app and press any key to continue.");
-                    Console.ReadKey();
-                }
                 Workbook BirthdayBook = Workbook.Load(path);
                 Worksheet BirthdaySheet = BirthdayBook.Worksheets[0];
                 for (int i = 0; i < BirthdaySheet.Cells.LastRowIndex; i++)

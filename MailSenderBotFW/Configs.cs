@@ -208,7 +208,7 @@ namespace MailSender
             employeeNameColumnNumber = number;
         }
 
-        public static bool GetReadConfigSuccess()
+        public static bool GetReadConfigSuccess() //TODO: is it really needed?
         {
             return readConfigSuccess;
         }
@@ -224,7 +224,7 @@ namespace MailSender
         public static void AddLogsCollected(string log)
         {
             log = $"\n{DateTime.Now} - " + log;
-            File.AppendAllText(Configs.GetLogsPath(), "\n" + log);
+            File.AppendAllText(Configs.GetLogsPath(), log); //Try.
             logsCollected = String.Concat(logsCollected, log) + " <br>";
         }
 

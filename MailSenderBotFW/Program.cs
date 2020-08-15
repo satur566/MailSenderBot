@@ -7,60 +7,52 @@ namespace MailSender
     {
         static void Main(string[] args)
         {
-            Configs.AddLogsCollected($"\n\n\nCurrent user: {Environment.UserName}");            
+            Configs.AddLogsCollected($"\n\n\nCurrent user: {Environment.UserName}"); //TODO: editConfig with args -edit parameter1=value1 parameter2=value2   
             try
             {
-                Methods.ReadConfig();                                
+                Methods.LoadConfig();                                
             }
             catch
             {
                 Console.WriteLine("Cannot properly read config file. Please set configuration again.");
                 Console.Write("Set sender e-mail: ");
-                Methods.ConfigWriter("text", "senderEmail", Console.ReadLine());
+                Methods.EditConfig("text", "senderEmail", Console.ReadLine());
 
                 Console.Write("Set sender password: ");
-                Methods.ConfigWriter("password", "senderPassword", Console.ReadLine()); //TODO: password enter with mask.
+                Methods.EditConfig("password", "senderPassword", Console.ReadLine()); //TODO: password enter with mask.
 
                 Console.Write("Set sender displayed name: ");
-                Methods.ConfigWriter("text", "senderName", Console.ReadLine());
+                Methods.EditConfig("text", "senderName", Console.ReadLine());
 
                 Console.Write("Set reciever e-mail: ");
-                Methods.ConfigWriter("text", "recieverEmail", Console.ReadLine());
+                Methods.EditConfig("text", "recieverEmail", Console.ReadLine());
 
                 Console.Write("Set message subject: ");
-                Methods.ConfigWriter("text", "messageSubject", Console.ReadLine());
+                Methods.EditConfig("text", "messageSubject", Console.ReadLine());
 
                 Console.Write($"Set a path to html file: ");
-                Methods.ConfigWriter("html", "htmlPath", Console.ReadLine()); //Remade IsFileExist                
+                Methods.EditConfig("html", "htmlPath", Console.ReadLine());              
 
                 Console.Write($"Set a path to xls file: ");
-                Methods.ConfigWriter("xls", "xlsPath", Console.ReadLine()); //Remade IsFileExist
+                Methods.EditConfig("xls", "xlsPath", Console.ReadLine());
 
                 Console.Write("Set a number of column contains birthday dates: ");
-                Methods.ConfigWriter("digit", "birthdayColumnNumber", Console.ReadLine()); //Remade IsDigit            
+                Methods.EditConfig("digit", "birthdayColumnNumber", Console.ReadLine());           
 
                 Console.Write("Set a number of column contains employees names: ");
-                Methods.ConfigWriter("digit", "employeeNameColumnNumber", Console.ReadLine()); //Remade IsDigit    
+                Methods.EditConfig("digit", "employeeNameColumnNumber", Console.ReadLine()); 
 
                 Console.Write("Set server address: ");
-                Methods.ConfigWriter("text", "serverAddress", Console.ReadLine());
+                Methods.EditConfig("text", "serverAddress", Console.ReadLine());
 
                 Console.Write("Set server port (if default - leave empty): ");
-                Methods.ConfigWriter("port", "serverPort", Console.ReadLine()); //Remade IsDigit     
+                Methods.EditConfig("port", "serverPort", Console.ReadLine());   
 
                 Console.WriteLine("Use 5/2 workmode?(yes) \nOtherwise will be user full week mode");
-                Methods.ConfigWriter("text", "fiveDaysMode", Console.ReadLine()); //TODO: ConfigWriter remade for this. (yes/no)
+                Methods.EditConfig("y/n", "fiveDaysMode", Console.ReadLine());
 
                 Console.Write("Set logs recievers: ");
-                Methods.ConfigWriter("text", "logRecievers", Console.ReadLine()); //TODO: ConfigWriter remade for this.
-                /*
-                string recieversString = Console.ReadLine();
-                string[] recievers = recieversString.Split(',');
-                foreach (var reciever in recievers)
-                {
-                    Configs.SetLogRecievers(reciever.Trim());
-                }
-                */
+                Methods.EditConfig("text", "logRecievers", Console.ReadLine()); //TODO: ConfigWriter remade for this.               
                 try
                 {
                     File.WriteAllText(Configs.GetConfigPath(), string.Empty);
@@ -71,9 +63,7 @@ namespace MailSender
                 {
                     Configs.AddLogsCollected($"Config save: FAILURE.");
                 }
-                Methods.ReadXlsFile(Configs.GetXlsPath(), Configs.GetFiveDayMode(), Configs.GetBirthdayColumnNumber(), Configs.GetEmployeeNameColumnNumber());
-                Methods.ReadHtmlFile(Configs.GetHtmlPath(), Employees.GetCongratulationsString());
-                Methods.ReadConfig();
+                Methods.LoadConfig();              
                 Configs.SetReadConfigSuccess(false);
             }
             if (Configs.GetReadConfigSuccess())
@@ -84,15 +74,15 @@ namespace MailSender
             {
                 Configs.AddLogsCollected($"Loading config: FAILURE");
             }
-            try
+            /*try
             {
-                /*if (DateTime.Now.Day == 2 && DateTime.Now.Month == 8)
+                if (DateTime.Now.Day == 2 && DateTime.Now.Month == 8)
                 {
                     Methods.SendMessage("a.maksimov@sever.ttk.ru", "Happy Birthday!", "Happy birthday, daddy! Wish you a good incoming year!", args, false);
                     Methods.SendMessage("satur566@gmail.com", "Happy Birthday!", "Happy birthday, daddy! Wish you a good incoming year!", args, false);
-                }*/
+                }
             }
-            catch { }
+            catch { }*/
             Methods.SendMail(args);
         }       
     }
