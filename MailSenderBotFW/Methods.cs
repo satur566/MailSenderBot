@@ -8,24 +8,20 @@ using System.Net;
 
 namespace MailSender
 {
-    static class Methods
+    static class Methods //TODO: remove all console methods.
     {
-        public static void PresendCheck(string[] args)
+        public static void SendMail(string[] args)
         {
             if (String.IsNullOrEmpty(ShowBirthdayGivers(false, false)) || Configs.GetFiveDayMode() && (DateTime.Now.DayOfWeek == DayOfWeek.Sunday || DateTime.Now.DayOfWeek == DayOfWeek.Saturday))
             {
-                Console.WriteLine("Today is day off");
+                Configs.AddLogsCollected($"Sending message: CANCELLED.");
                 if (String.IsNullOrEmpty(ShowBirthdayGivers(false, false)))
                 {
-                    Configs.AddLogsCollected($"Sending message: CANCELLED.");
-                    Configs.AddLogsCollected($"Reason: employees don't have a birthday today.");
-                    SendLogs(args);
+                    Configs.AddLogsCollected($"Reason: employees don't have a birthday today.");                    
                 }
-                else
+                if (Configs.GetFiveDayMode() && (DateTime.Now.DayOfWeek == DayOfWeek.Sunday || DateTime.Now.DayOfWeek == DayOfWeek.Saturday))
                 {
-                    Configs.AddLogsCollected($"Sending message: CANCELLED.");
                     Configs.AddLogsCollected($"Reason: today is a day off.");
-                    SendLogs(args);
                 }
             }
             else
@@ -37,11 +33,10 @@ namespace MailSender
                     $"\n" +
                     $"\n{ShowBirthdayGivers(false, false)}\n");
 
-                if (args.Contains<string>("-silent") && Configs.GetReadConfigSuccess())
+                if (Configs.GetReadConfigSuccess() && args.Contains<string>("-silent"))
                 {
                     SendMessage(Configs.GetRecieverEmail(), Configs.GetMessageSubject(), Configs.GetMessageText(), args, true);
-                    Configs.AddLogsCollected($"Sending message mode: silent");
-                    SendLogs(args);
+                    Configs.AddLogsCollected($"Sending message mode: silent");                    
                 }
                 else
                 {
@@ -50,16 +45,15 @@ namespace MailSender
                     {
                         case "y":
                             SendMessage(Configs.GetRecieverEmail(), Configs.GetMessageSubject(), Configs.GetMessageText(), args, true);
-                            SendLogs(args);
                             break;
                         default:
                             Configs.AddLogsCollected($"Sending message: CANCELLED.");
                             Configs.AddLogsCollected($"Reason: user cancel.");
-                            SendLogs(args);
                             break;
                     }
                 }
             }
+            SendLogs(args);
         }
 
         private static void SendLogs(string[] args)
@@ -69,15 +63,16 @@ namespace MailSender
                 try
                 {
                     SendMessage(reciever, $"log from {DateTime.Now}", Configs.GetLogsCollected(), args, false);
+                    Configs.AddLogsCollected($"Sending logs: SUCCESS.");
                 }
                 catch
                 {
-
+                    Configs.AddLogsCollected($"Sending logs: FAILURE.");
                 }
             }
         }
 
-        private static string ShowBirthdayGivers(bool inLogs, bool onEmail)
+        private static string ShowBirthdayGivers(bool inLogs, bool onEmail) //TODO: send conclusion method.
         {
             string result = "";
             foreach (var item in Employees.GetWhosBirthdayIs())
@@ -158,24 +153,17 @@ namespace MailSender
                     default:
                         break;
                 }
-            }
-            try
-            {
-                ReadFile(Configs.GetXlsPath(), Configs.GetFiveDayMode(), Configs.GetBirthdayColumnNumber(), Configs.GetEmployeeNameColumnNumber());
-                Configs.AddLogsCollected($"Reading xls: SUCCESS."); //Fix logging. Set try-catch into method.
-            }
-            catch
-            {
-                Configs.AddLogsCollected($"Reading xls: FAILURE.");
-            }
-            CheckHtml();
+            }          
+            ReadXlsFile(Configs.GetXlsPath(), Configs.GetFiveDayMode(), Configs.GetBirthdayColumnNumber(), Configs.GetEmployeeNameColumnNumber());
+            ReadHtmlFile(Configs.GetHtmlPath(), Employees.GetCongratulationsString());
+            Configs.SetReadConfigSuccess(true);
         }
 
-        private static void CheckHtml()
+        private static void ReadHtmlFile(string path, string employees)
         {
-            if (File.ReadAllText(Configs.GetHtmlPath()).Contains("%LIST_OF_EMPLOYEES%"))
+            if (File.ReadAllText(path).Contains("%LIST_OF_EMPLOYEES%"))
             {
-                Configs.SetMessageText(File.ReadAllText(Configs.GetHtmlPath()).Replace("%LIST_OF_EMPLOYEES%", Employees.GetCongratulationsString()));
+                Configs.SetMessageText(File.ReadAllText(path).Replace("%LIST_OF_EMPLOYEES%", employees));
                 Configs.AddLogsCollected($"Reading html: SUCCESS.");
             }
             else
@@ -194,7 +182,7 @@ namespace MailSender
             }
         }
 
-        public static void SendMessage(string reciever, string subject, string message, string[] args, bool enableLog)
+        private static void SendMessage(string reciever, string subject, string message, string[] args, bool enableLog)
         {
             try
             {
@@ -214,7 +202,7 @@ namespace MailSender
                 Client.Send(Message);
                 if (enableLog)
                 {
-                    Configs.AddLogsCollected($"Sending message: SUCCESS."); //Log writing bug!
+                    Configs.AddLogsCollected($"Sending message: SUCCESS."); //TODO: send conclusion.
                     Configs.AddLogsCollected($"Conclusion: <br>" +
                         $"\n\t\t\t\t\t\tSender mail: {Configs.GetSenderEmail()}<br>" +
                         $"\n\t\t\t\t\t\tSender name: {Configs.GetSenderName()}<br>" +
@@ -225,106 +213,88 @@ namespace MailSender
             }
             catch
             {
-                Console.WriteLine("There are some errors occured, while trying to send message.\nWould you like to reconfigure me? (y/n)");
                 Configs.AddLogsCollected($"Sending message: FAILURE.");
+                /*Console.WriteLine("There are some errors occured, while trying to send message.\nWould you like to reconfigure me? (y/n)");               
                 switch (Console.ReadLine().ToLower())
                 {
                     case "y":
                     case "yes":
                         CreateConfig();
-                        PresendCheck(args);
+                        SendMail(args);
                         break;
                     default:
                         break;
                 }
-
+                */
             }
         }
-
-        public static void CreateConfig()
+        private static void ConfigWriter(string type, string parameter, string value) 
         {
-            Console.Write("Set sender e-mail: ");
-            Configs.SetSenderEmail(Console.ReadLine());
-            Configs.SetConfigurations("senderEmail=" + Configs.GetSenderEmail());
-            Configs.AddLogsCollected($"Config: senderEmail={Configs.GetSenderEmail()}");
-
-            Console.Write("Set sender password: ");
-            Configs.SetSenderPassword(Console.ReadLine()); //TODO: password enter with mask.
-            Configs.SetConfigurations("senderPassword=" + Configs.GetSenderPassword());
-            Configs.AddLogsCollected($"Config: senderPassword={Configs.GetSenderPassword()}");
-
-            Console.Write("Set sender displayed name: ");
-            Configs.SetSenderName(Console.ReadLine());
-            Configs.SetSenderUsername(Configs.GetSenderEmail());
-            Configs.SetConfigurations("senderName=" + Configs.GetSenderName());
-            Configs.AddLogsCollected($"Config: senderName={Configs.GetSenderName()}");
-            Configs.SetConfigurations("senderUsername=" + Configs.GetSenderUsername()); //Probably useless.
-            Configs.AddLogsCollected($"Config: senderUsername={Configs.GetSenderUsername()}"); //Probably useless.
-
-            Console.Write("Set reciever e-mail: ");
-            Configs.SetRecieverEmail(Console.ReadLine());
-            Configs.SetConfigurations("recieverEmail=" + Configs.GetRecieverEmail());
-            Configs.AddLogsCollected($"Config: recieverEmail={Configs.GetRecieverEmail()}");
-
-            Console.Write("Set message subject: ");
-            Configs.SetMessageSubject(Console.ReadLine());
-            Configs.SetConfigurations("messageSubject=" + Configs.GetMessageSubject());
-            Configs.AddLogsCollected($"Config: messageSubject={Configs.GetMessageSubject()}");
-
-            Configs.SetHtmlPath(IsFileExist("html"));
-            Configs.SetConfigurations("htmlPath=" + Configs.GetHtmlPath());
-            Configs.AddLogsCollected($"Config: htmlPath={Configs.GetHtmlPath()}");
-
-            Configs.SetMessageText(File.ReadAllText(Configs.GetHtmlPath()));
-
-            Configs.SetXlsPath(IsFileExist("xls"));
-            Configs.SetConfigurations("xlsPath=" + Configs.GetXlsPath());
-            Configs.AddLogsCollected($"Config: xlsPath={Configs.GetXlsPath()}");
-
-            Console.Write("Set a number of column contains birthday dates: ");
-            Configs.SetBirthdayColumnNumber(IsDigit(false));
-            Configs.SetConfigurations("birthdayColumnNumber=" + Configs.GetBirthdayColumnNumber());
-            Configs.AddLogsCollected($"Config: birthdayColumnNumber={Configs.GetBirthdayColumnNumber()}");
-
-            Console.Write("Set a number of column contains employees names: ");
-            Configs.SetEmployeeNameColumnNumber(IsDigit(false));
-            Configs.SetConfigurations("employeeNameColumnNumber=" + Configs.GetEmployeeNameColumnNumber());
-            Configs.AddLogsCollected($"Config: employeeNameColumnNumber={Configs.GetEmployeeNameColumnNumber()}");
-
-            Console.Write("Set server address: ");
-            Configs.SetServerAddress(Console.ReadLine());
-            Configs.SetConfigurations("serverAddress=" + Configs.GetServerAddress());
-            Configs.AddLogsCollected($"Config: serverAddress={Configs.GetServerAddress()}");
-
-            Console.Write("Set server port (if default - leave empty): ");
-            Configs.SetServerPort(IsDigit(true));
-            Configs.SetConfigurations("serverPort=" + Configs.GetServerPort());
-            Configs.AddLogsCollected($"Config: serverPort={Configs.GetServerPort()}");
-
-            Console.WriteLine("Use 5/2 workmode?(yes) \nOtherwise will be user full week mode");
-            switch (Console.ReadLine().ToLower())
+            switch (type)
             {
-                case "y":
-                case "yes":
-                    Configs.SetFiveDayMode(true);
+                case "digit":
                     break;
-                default:
-                    Configs.SetFiveDayMode(false);
+                case "file":
+                    break;
+                case "password":
+                    break;
+                default: //simple text.
                     break;
             }
-            Configs.SetConfigurations("fiveDaysMode=" + Configs.GetFiveDayMode());
-            Configs.AddLogsCollected($"Config: fiveDaysMode={Configs.GetFiveDayMode()}");
+            Configs.SetConfigurations(parameter + value);
+            Configs.AddLogsCollected($"Config: " + parameter + "=" + value);
+        }
+
+        public static void WriteConfig()
+        {            
+            Console.Write("Set sender e-mail: ");
+            ConfigWriter("text", "senderEmail", Console.ReadLine());
+
+            Console.Write("Set sender password: ");
+            ConfigWriter("password", "senderPassword", Console.ReadLine()); //TODO: password enter with mask.
+
+            Console.Write("Set sender displayed name: ");
+            ConfigWriter("text", "senderName", Console.ReadLine());            
+
+            Console.Write("Set reciever e-mail: ");
+            ConfigWriter("text", "recieverEmail", Console.ReadLine());            
+
+            Console.Write("Set message subject: ");
+            ConfigWriter("text", "messageSubject", Console.ReadLine());
+
+            Console.Write($"Set a path to html file: ");
+            ConfigWriter("file", "htmlPath", IsFileExist("html")); //Remade IsFileExist
+
+            Configs.SetMessageText(File.ReadAllText(Configs.GetHtmlPath())); //Throw somewhere
+
+            Console.Write($"Set a path to xls file: ");
+            ConfigWriter("file", "xlsPath", IsFileExist("xls")); //Remade IsFileExist
+
+            Console.Write("Set a number of column contains birthday dates: ");
+            ConfigWriter("digit", "birthdayColumnNumber", IsDigit(false)); //Remade IsDigit            
+
+            Console.Write("Set a number of column contains employees names: ");
+            ConfigWriter("digit", "employeeNameColumnNumber", IsDigit(false)); //Remade IsDigit    
+
+            Console.Write("Set server address: ");
+            ConfigWriter("text", "serverAddress", Console.ReadLine());
+
+            Console.Write("Set server port (if default - leave empty): ");
+            ConfigWriter("digit", "serverPort", IsDigit(true)); //Remade IsDigit     
+
+            Console.WriteLine("Use 5/2 workmode?(yes) \nOtherwise will be user full week mode");
+            ConfigWriter("text", "fiveDaysMode", Console.ReadLine()); //TODO: ConfigWriter remade for this. (yes/no)
 
             Console.Write("Set logs recievers: ");
+            ConfigWriter("text", "logRecievers", Console.ReadLine()); //TODO: ConfigWriter remade for this.
+            /*
             string recieversString = Console.ReadLine();
             string[] recievers = recieversString.Split(',');
             foreach (var reciever in recievers)
             {
                 Configs.SetLogRecievers(reciever.Trim());
             }
-            Configs.SetConfigurations("logRecievers=" + recieversString);
-            Configs.AddLogsCollected("logRecievers=" + recieversString);
-
+            */
             try
             {
                 File.WriteAllText(Configs.GetConfigPath(), string.Empty);
@@ -335,25 +305,17 @@ namespace MailSender
             {
                 Configs.AddLogsCollected($"Config save: FAILURE.");
             }
-            try
-            {
-                ReadFile(Configs.GetXlsPath(), Configs.GetFiveDayMode(), Configs.GetBirthdayColumnNumber(), Configs.GetEmployeeNameColumnNumber());
-                Configs.AddLogsCollected($"Reading xls: SUCCESS.");
-            }
-            catch
-            {
-                Configs.AddLogsCollected($"Reading xls: FAILURE.");
-            }
-
-            CheckHtml();
+            ReadXlsFile(Configs.GetXlsPath(), Configs.GetFiveDayMode(), Configs.GetBirthdayColumnNumber(), Configs.GetEmployeeNameColumnNumber());
+            ReadHtmlFile(Configs.GetHtmlPath(), Employees.GetCongratulationsString());
+            ReadConfig();
+            Configs.SetReadConfigSuccess(false);            
         }
 
         private static string IsFileExist(string fileType)
         {
             string pathToFile;
             while (true)
-            {
-                Console.Write($"Set a path to {fileType} file: ");
+            {                
                 pathToFile = Console.ReadLine();
                 if (File.Exists(pathToFile) && pathToFile.EndsWith(fileType))
                 {
@@ -417,65 +379,72 @@ namespace MailSender
             return Locked;
         }
 
-        private static void ReadFile(string path, bool fiveDaysMode, string birthdayColumn, string employeeColumn)
+        private static void ReadXlsFile(string path, bool fiveDaysMode, string birthdayColumn, string employeeColumn)
         {
-            int bdColumn = Convert.ToInt32(birthdayColumn);
-            int emColumn = Convert.ToInt32(employeeColumn);
-            bdColumn--;
-            emColumn--;
-            while (IsFileLocked(path))
+            try
             {
-                Console.WriteLine("xls file is opened in another application. Please close that app and press any key to continue.");
-                Console.ReadKey();
-            }
-            Workbook BirthdayBook = Workbook.Load(path);
-            Worksheet BirthdaySheet = BirthdayBook.Worksheets[0];
-            for (int i = 0; i < BirthdaySheet.Cells.LastRowIndex; i++)
-            {
-
-                try
+                int bdColumn = Convert.ToInt32(birthdayColumn);
+                int emColumn = Convert.ToInt32(employeeColumn);
+                bdColumn--;
+                emColumn--;
+                while (IsFileLocked(path))
                 {
-                    if (Convert.ToDateTime(BirthdaySheet.Cells[i, bdColumn].ToString()).Date > DateTime.Today)
+                    Console.WriteLine("xls file is opened in another application. Please close that app and press any key to continue.");
+                    Console.ReadKey();
+                }
+                Workbook BirthdayBook = Workbook.Load(path);
+                Worksheet BirthdaySheet = BirthdayBook.Worksheets[0];
+                for (int i = 0; i < BirthdaySheet.Cells.LastRowIndex; i++)
+                {
+
+                    try
+                    {
+                        if (Convert.ToDateTime(BirthdaySheet.Cells[i, bdColumn].ToString()).Date > DateTime.Today)
+                        {
+                            continue;
+                        }
+                    }
+                    catch
+                    {
+                        continue;
+                    }
+                    try
+                    {
+                        if (Convert.ToDateTime(BirthdaySheet.Cells[i, bdColumn].ToString()).Date.Equals(DateTime.Now.Date))
+                        {
+                            Employees.SetWhosBirthdayIs(BirthdaySheet.Cells[i, emColumn].ToString());
+                        }
+                        if (DateTime.Now.DayOfWeek == DayOfWeek.Monday && fiveDaysMode)
+                        {
+                            try
+                            {
+                                if (Convert.ToDateTime(BirthdaySheet.Cells[i, bdColumn].ToString()).Date.Equals(DateTime.Now.AddDays(-1).Date))
+                                {
+                                    Employees.SetWhosBirthdayIs(BirthdaySheet.Cells[i, emColumn].ToString());
+                                }
+                            }
+                            catch { }
+                            try
+                            {
+                                if (Convert.ToDateTime(BirthdaySheet.Cells[i, bdColumn].ToString()).Date.Equals(DateTime.Now.AddDays(-2).Date))
+                                {
+                                    Employees.SetWhosBirthdayIs(BirthdaySheet.Cells[i, emColumn].ToString());
+                                }
+                            }
+                            catch { }
+                        }
+                    }
+                    catch
                     {
                         continue;
                     }
                 }
-                catch
-                {
-                    continue;
-                }
-                try
-                {
-                    if (Convert.ToDateTime(BirthdaySheet.Cells[i, bdColumn].ToString()).Date.Equals(DateTime.Now.Date))
-                    {
-                        Employees.SetWhosBirthdayIs(BirthdaySheet.Cells[i, emColumn].ToString());
-                    }
-                    if (DateTime.Now.DayOfWeek == DayOfWeek.Monday && fiveDaysMode)
-                    {
-                        try
-                        {
-                            if (Convert.ToDateTime(BirthdaySheet.Cells[i, bdColumn].ToString()).Date.Equals(DateTime.Now.AddDays(-1).Date))
-                            {
-                                Employees.SetWhosBirthdayIs(BirthdaySheet.Cells[i, emColumn].ToString());
-                            }
-                        }
-                        catch { }
-                        try
-                        {
-                            if (Convert.ToDateTime(BirthdaySheet.Cells[i, bdColumn].ToString()).Date.Equals(DateTime.Now.AddDays(-2).Date))
-                            {
-                                Employees.SetWhosBirthdayIs(BirthdaySheet.Cells[i, emColumn].ToString());
-                            }
-                        }
-                        catch { }
-                    }
-                }
-                catch
-                {
-                    continue;
-                }
+                Configs.AddLogsCollected($"Reading xls: SUCCESS.");
+            } 
+            catch
+            {
+                Configs.AddLogsCollected($"Reading xls: FAILURE.");
             }
-
         }
     }
 }
