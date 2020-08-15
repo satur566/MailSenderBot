@@ -159,7 +159,7 @@ namespace MailSender
             Configs.SetReadConfigSuccess(true);
         }
 
-        private static void ReadHtmlFile(string path, string employees)
+        public static void ReadHtmlFile(string path, string employees)
         {
             if (File.ReadAllText(path).Contains("%LIST_OF_EMPLOYEES%"))
             {
@@ -228,20 +228,46 @@ namespace MailSender
                 */
             }
         }
-        private static void ConfigWriter(string type, string parameter, string value) 
+        public static void ConfigWriter(string type, string parameter, string value) 
         {
             switch (type)
             {
                 case "digit":
+                    if (!Int32.TryParse(value, out _))
+                    {
+                        value = "";
+                    }                        
+                    break;
+                case "port":
+                    if (string.IsNullOrEmpty(value) || string.IsNullOrWhiteSpace(value))
+                    {
+                        value = "";
+                    } 
+                    else if (!Int32.TryParse(value, out _))
+                    {
+                        value = "";
+                    }                    
                     break;
                 case "file":
+                    string fileType = value.Substring(value.LastIndexOf('.'), value.Length - value.LastIndexOf('.'));
+                    if (File.Exists(value))
+                    {
+                        if (!File.ReadAllText(value).Contains("%LIST_OF_EMPLOYEES%") && fileType != "xls")
+                        {
+                            value = "";
+                        }
+                    }
+                    else
+                    {
+                        value = "";
+                    }
                     break;
                 case "password":
                     break;
-                default: //simple text.
+                default:
                     break;
             }
-            Configs.SetConfigurations(parameter + value);
+            Configs.SetConfigurations(parameter + "=" + value);
             Configs.AddLogsCollected($"Config: " + parameter + "=" + value);
         }
 
@@ -379,7 +405,7 @@ namespace MailSender
             return Locked;
         }
 
-        private static void ReadXlsFile(string path, bool fiveDaysMode, string birthdayColumn, string employeeColumn)
+        public static void ReadXlsFile(string path, bool fiveDaysMode, string birthdayColumn, string employeeColumn)
         {
             try
             {
