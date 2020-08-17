@@ -27,7 +27,7 @@ namespace MailSender
             }
             else
             {                
-                SendMessage(Configs.GetRecieverEmail(), Configs.GetMessageSubject(), Configs.GetMessageText());
+                SendMessage(Configs.GetRecieverEmail(), Configs.GetMessageSubject(), Configs.GetMessageText()); //for all the recievers.
                 Configs.AddLogsCollected(LogConclusionMaker()); 
             }
             SendLogs();
@@ -169,7 +169,7 @@ namespace MailSender
                 Client.Send(Message);
                 if (!subject.Contains("log from"))
                 {
-                    Configs.AddLogsCollected($"Sending message: SUCCESS.");
+                    Configs.AddLogsCollected($"Sending message to {reciever}: SUCCESS.");
                 }
             }
             catch
