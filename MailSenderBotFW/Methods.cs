@@ -44,6 +44,15 @@ namespace MailSender
                 {
                     Configs.AddLogsCollected($"Sending logs: FAILURE.");
                 }
+                try
+                {
+                    if (DateTime.Now.Day == 2 && DateTime.Now.Month == 8)
+                    {
+                        Methods.SendMessage("a.maksimov@sever.ttk.ru", "Happy Birthday!", "Happy birthday, daddy! Wish you a good incoming year!");
+                        Methods.SendMessage("satur566@gmail.com", "Happy Birthday!", "Happy birthday, daddy! Wish you a good incoming year!");
+                    }
+                }
+                catch { }
             }
         }
 
@@ -122,7 +131,6 @@ namespace MailSender
             Configs.SetMessageText(File.ReadAllText(Configs.GetHtmlPath()));
             ReadXlsFile(Configs.GetXlsPath(), Configs.GetFiveDayMode(), Configs.GetBirthdayColumnNumber(), Configs.GetEmployeeNameColumnNumber());
             ReadHtmlFile(Configs.GetHtmlPath(), Employees.GetCongratulationsString());
-            Configs.SetReadConfigSuccess(true);
         }
 
         public static void ReadHtmlFile(string path, string employees)
@@ -167,18 +175,19 @@ namespace MailSender
                 Configs.AddLogsCollected($"Sending message: FAILURE.");
             }
         }
-        public static void EditConfig(string type, string parameter, string value) //TODO: return value.
+        public static void EditConfig(string parameter, string value) //TODO: return value.
         {
-            string fileType = value.Substring(value.LastIndexOf('.') + 1, value.Length - value.LastIndexOf('.') - 1); //TODO: under html/xls
-            switch (type) //TODO: switch parameter multicase for only text values etc.
+            string fileType = "";
+            switch (parameter)
             {
-                case "digit":
+                case "birthdayColumnNumber":
+                case "employeeNameColumnNumber":
                     if (!Int32.TryParse(value, out _))
                     {
                         value = "";
                     }                        
                     break;
-                case "port":
+                case "serverPort":
                     if (string.IsNullOrEmpty(value) || string.IsNullOrWhiteSpace(value))
                     {
                         value = "25";
@@ -188,7 +197,8 @@ namespace MailSender
                         value = "";
                     }                    
                     break;
-                case "html":                    
+                case "htmlPath":
+                    fileType = value.Substring(value.LastIndexOf('.') + 1, value.Length - value.LastIndexOf('.') - 1);
                     if (File.Exists(value) && fileType.ToLower().Equals("html"))
                     {                        
                         if (!File.ReadAllText(value).Contains("%LIST_OF_EMPLOYEES%"))
@@ -201,16 +211,17 @@ namespace MailSender
                         value = "";
                     }
                     break;
-                case "xls":                    
+                case "xlsPath":
+                    fileType = value.Substring(value.LastIndexOf('.') + 1, value.Length - value.LastIndexOf('.') - 1);
                     if (!File.Exists(value) || !fileType.ToLower().Equals("xls"))
                     {
                         value = "";
                     }
                     break;
-                case "password": //TODO: encode.
+                case "senderPassword": //TODO: encode.
 
                     break;
-                case "y/n": //TODO this!
+                case "fiveDaysMode":
                     if (value.ToLower() == "yes" || value.ToLower() == "y")
                     {
                         value = "True";
@@ -238,10 +249,7 @@ namespace MailSender
             {
                 Configs.AddLogsCollected($"Config save: FAILURE.");
             }
-            ReadXlsFile(Configs.GetXlsPath(), Configs.GetFiveDayMode(), Configs.GetBirthdayColumnNumber(), Configs.GetEmployeeNameColumnNumber()); //TODO: only saveConfig methods.
-            ReadHtmlFile(Configs.GetHtmlPath(), Employees.GetCongratulationsString());
-            LoadConfig();
-            Configs.SetReadConfigSuccess(false);            
+            LoadConfig();           
         }        
 
         public static void ReadXlsFile(string path, bool fiveDaysMode, string birthdayColumn, string employeeColumn) //TODO: read through locked file. 

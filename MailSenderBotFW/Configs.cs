@@ -22,7 +22,6 @@ namespace MailSender
         private static bool fiveDayMode;
         private static string birthdayColumnNumber;
         private static string employeeNameColumnNumber;
-        private static bool readConfigSuccess;
         private static readonly List<string> logRecievers = new List<string>();
         private static string logsCollected = ""; //TODO: add IsSSL and IsHtml
 
@@ -206,15 +205,6 @@ namespace MailSender
         public static void SetEmployeeNameColumnNumber(string number)
         {
             employeeNameColumnNumber = number;
-        }
-
-        public static bool GetReadConfigSuccess() //TODO: is it really needed?
-        {
-            return readConfigSuccess;
-        }
-        public static void SetReadConfigSuccess(bool state)
-        {
-            readConfigSuccess = state;
         }
 
         public static string GetLogsCollected()
