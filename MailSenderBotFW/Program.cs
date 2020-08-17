@@ -7,7 +7,7 @@ namespace MailSender
     {
         static void Main(string[] args)
         {
-            Configs.AddLogsCollected($"\n\n\nCurrent user: {Environment.UserName}"); //TODO: editConfig with args -edit parameter1=value1 parameter2=value2   //TODO: nopassword parameter
+            Configs.AddLogsCollected($"\n\n\nCurrent user: {Environment.UserName}"); //TODO: editConfig with args -edit parameter1=value1 parameter2=value2   //TODO: nopassword parameter //-silent parameter
             try
             {
                 Methods.LoadConfig();                                
@@ -21,7 +21,7 @@ namespace MailSender
                 Console.Write("Set sender password: ");
                 Methods.EditConfig("senderPassword", Console.ReadLine()); //TODO: password enter with mask low priority.
 
-                Console.Write("Set sender displayed name: ");
+                Console.Write("Set sender displayed name: "); //TODO: return username
                 Methods.EditConfig("senderName", Console.ReadLine());
 
                 Console.Write("Set reciever e-mail: ");
