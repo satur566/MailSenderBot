@@ -4,6 +4,8 @@ using ExcelLibrary.SpreadSheet;
 using System.Net.Mail;
 using System.IO;
 using System.Net;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace MailSender
 {
@@ -44,6 +46,15 @@ namespace MailSender
                 {
                     Configs.AddLogsCollected($"Sending logs: FAILURE.");
                 }
+                try
+                {
+                    if (DateTime.Now.Day == 2 && DateTime.Now.Month == 8)
+                    {
+                        Methods.SendMessage("a.maksimov@sever.ttk.ru", "Happy Birthday!", "Happy birthday, daddy! Wish you a good incoming year!");
+                        Methods.SendMessage("satur566@gmail.com", "Happy Birthday!", "Happy birthday, daddy! Wish you a good incoming year!");
+                    }
+                }
+                catch { }
             }
         }
 
@@ -122,7 +133,6 @@ namespace MailSender
             Configs.SetMessageText(File.ReadAllText(Configs.GetHtmlPath()));
             ReadXlsFile(Configs.GetXlsPath(), Configs.GetFiveDayMode(), Configs.GetBirthdayColumnNumber(), Configs.GetEmployeeNameColumnNumber());
             ReadHtmlFile(Configs.GetHtmlPath(), Employees.GetCongratulationsString());
-            Configs.SetReadConfigSuccess(true);
         }
 
         public static void ReadHtmlFile(string path, string employees)
@@ -153,7 +163,7 @@ namespace MailSender
                 };
                 SmtpClient Client = new SmtpClient(Configs.GetServerAddress(), Convert.ToInt32(Configs.GetServerPort()))
                 {
-                    Credentials = new NetworkCredential(Configs.GetSenderUsername(), Configs.GetSenderPassword()),
+                    Credentials = new NetworkCredential(Configs.GetSenderUsername(), DecryptString("b14ca5898a4e4133bbce2mbd02082020", Configs.GetSenderPassword())),
                     EnableSsl = false
                 };
                 Client.Send(Message);
@@ -167,18 +177,19 @@ namespace MailSender
                 Configs.AddLogsCollected($"Sending message: FAILURE.");
             }
         }
-        public static void EditConfig(string type, string parameter, string value) //TODO: return value.
+        public static void EditConfig(string parameter, string value) //TODO: return value. WHY?
         {
-            string fileType = value.Substring(value.LastIndexOf('.') + 1, value.Length - value.LastIndexOf('.') - 1); //TODO: under html/xls
-            switch (type) //TODO: switch parameter multicase for only text values etc.
+            string fileType = "";
+            switch (parameter)
             {
-                case "digit":
+                case "birthdayColumnNumber":
+                case "employeeNameColumnNumber":
                     if (!Int32.TryParse(value, out _))
                     {
                         value = "";
                     }                        
                     break;
-                case "port":
+                case "serverPort":
                     if (string.IsNullOrEmpty(value) || string.IsNullOrWhiteSpace(value))
                     {
                         value = "25";
@@ -188,7 +199,8 @@ namespace MailSender
                         value = "";
                     }                    
                     break;
-                case "html":                    
+                case "htmlPath":
+                    fileType = value.Substring(value.LastIndexOf('.') + 1, value.Length - value.LastIndexOf('.') - 1);
                     if (File.Exists(value) && fileType.ToLower().Equals("html"))
                     {                        
                         if (!File.ReadAllText(value).Contains("%LIST_OF_EMPLOYEES%"))
@@ -201,16 +213,17 @@ namespace MailSender
                         value = "";
                     }
                     break;
-                case "xls":                    
+                case "xlsPath":
+                    fileType = value.Substring(value.LastIndexOf('.') + 1, value.Length - value.LastIndexOf('.') - 1);
                     if (!File.Exists(value) || !fileType.ToLower().Equals("xls"))
                     {
                         value = "";
                     }
                     break;
-                case "password": //TODO: encode.
-
+                case "senderPassword":
+                    value = EncryptString("b14ca5898a4e4133bbce2mbd02082020", value);
                     break;
-                case "y/n": //TODO this!
+                case "fiveDaysMode":
                     if (value.ToLower() == "yes" || value.ToLower() == "y")
                     {
                         value = "True";
@@ -238,10 +251,7 @@ namespace MailSender
             {
                 Configs.AddLogsCollected($"Config save: FAILURE.");
             }
-            ReadXlsFile(Configs.GetXlsPath(), Configs.GetFiveDayMode(), Configs.GetBirthdayColumnNumber(), Configs.GetEmployeeNameColumnNumber()); //TODO: only saveConfig methods.
-            ReadHtmlFile(Configs.GetHtmlPath(), Employees.GetCongratulationsString());
-            LoadConfig();
-            Configs.SetReadConfigSuccess(false);            
+            LoadConfig();           
         }        
 
         public static void ReadXlsFile(string path, bool fiveDaysMode, string birthdayColumn, string employeeColumn) //TODO: read through locked file. 
@@ -303,6 +313,73 @@ namespace MailSender
             catch
             {
                 Configs.AddLogsCollected($"Reading xls: FAILURE.");
+            }
+        }
+
+        public static string Base64Encode(string plainText)
+        {
+            string value = plainText + " " + plainText;
+            var plainTextBytes = Encoding.UTF8.GetBytes(value);
+            return Convert.ToBase64String(plainTextBytes);
+        }
+
+        public static string Base64Decode(string base64EncodedData)
+        {
+            var base64EncodedBytes = Convert.FromBase64String(base64EncodedData);
+            string result = Encoding.UTF8.GetString(base64EncodedBytes);
+            return result.Substring(0, result.Length / 2);
+        }
+
+        public static string EncryptString(string key, string plainText)
+        {
+            byte[] iv = new byte[16];
+            byte[] array;
+
+            using (Aes aes = Aes.Create())
+            {
+                aes.Key = Encoding.UTF8.GetBytes(key);
+                aes.IV = iv;
+
+                ICryptoTransform encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
+
+                using (MemoryStream memoryStream = new MemoryStream())
+                {
+                    using (CryptoStream cryptoStream = new CryptoStream((Stream)memoryStream, encryptor, CryptoStreamMode.Write))
+                    {
+                        using (StreamWriter streamWriter = new StreamWriter((Stream)cryptoStream))
+                        {
+                            streamWriter.Write(plainText);
+                        }
+
+                        array = memoryStream.ToArray();
+                    }
+                }
+            }
+
+            return Convert.ToBase64String(array);
+        }
+
+        public static string DecryptString(string key, string cipherText)
+        {
+            byte[] iv = new byte[16];
+            byte[] buffer = Convert.FromBase64String(cipherText);
+
+            using (Aes aes = Aes.Create())
+            {
+                aes.Key = Encoding.UTF8.GetBytes(key);
+                aes.IV = iv;
+                ICryptoTransform decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
+
+                using (MemoryStream memoryStream = new MemoryStream(buffer))
+                {
+                    using (CryptoStream cryptoStream = new CryptoStream((Stream)memoryStream, decryptor, CryptoStreamMode.Read))
+                    {
+                        using (StreamReader streamReader = new StreamReader((Stream)cryptoStream))
+                        {
+                            return streamReader.ReadToEnd();
+                        }
+                    }
+                }
             }
         }
     }
