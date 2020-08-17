@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using ExcelLibrary.SpreadSheet;
 using System.Net.Mail;
 using System.IO;
@@ -8,14 +7,14 @@ using System.Net;
 
 namespace MailSender
 {
-    static class Methods //TODO: remove all console methods.
+    static class Methods
     {
-        public static void SendMail(string[] args)
+        public static void SendMail()
         {
-            if (String.IsNullOrEmpty(ShowBirthdayGivers(false, false)) || Configs.GetFiveDayMode() && (DateTime.Now.DayOfWeek == DayOfWeek.Sunday || DateTime.Now.DayOfWeek == DayOfWeek.Saturday))
+            if (Employees.GetWhosBirthdayIs().Count.Equals(0) || Configs.GetFiveDayMode() && (DateTime.Now.DayOfWeek == DayOfWeek.Sunday || DateTime.Now.DayOfWeek == DayOfWeek.Saturday))
             {
                 Configs.AddLogsCollected($"Sending message: CANCELLED.");
-                if (String.IsNullOrEmpty(ShowBirthdayGivers(false, false)))
+                if (Employees.GetWhosBirthdayIs().Count.Equals(0))
                 {
                     Configs.AddLogsCollected($"Reason: employees don't have a birthday today.");                    
                 }
@@ -25,31 +24,20 @@ namespace MailSender
                 }
             }
             else
-            {
-                Configs.SetMessageText(File.ReadAllText(Configs.GetHtmlPath()));
-                /*Console.Write($"\nConclusion:" +
-                    $"\nSender mail: {Configs.GetSenderEmail()}" +
-                    $"\nSender name: {Configs.GetSenderName()}" +
-                    $"\nReciever e-mail: {Configs.GetRecieverEmail()}" +
-                    $"\n" +
-                    $"\n{ShowBirthdayGivers(false, false)}\n");*/ //TODO: Conclusion method.
-
-                if (Configs.GetReadConfigSuccess() && args.Contains<string>("-silent")) //TODO: silent mode is OK
-                {
-                    SendMessage(Configs.GetRecieverEmail(), Configs.GetMessageSubject(), Configs.GetMessageText(), args, true);
-                    Configs.AddLogsCollected($"Sending message mode: silent");                    
-                }               
+            {                
+                SendMessage(Configs.GetRecieverEmail(), Configs.GetMessageSubject(), Configs.GetMessageText());
+                Configs.AddLogsCollected(LogConclusionMaker()); 
             }
-            SendLogs(args);
+            SendLogs();
         }
 
-        private static void SendLogs(string[] args)
+        private static void SendLogs()
         {
             foreach (var reciever in Configs.GetLogRecievers())
             {
                 try
                 {
-                    SendMessage(reciever, $"log from {DateTime.Now}", Configs.GetLogsCollected(), args, false);
+                    SendMessage(reciever, $"log from {DateTime.Now}", Configs.GetLogsCollected());
                     Configs.AddLogsCollected($"Sending logs: SUCCESS.");
                 }
                 catch
@@ -59,29 +47,20 @@ namespace MailSender
             }
         }
 
-        private static string ShowBirthdayGivers(bool inLogs, bool onEmail) //TODO: send conclusion method.
+        private static string LogConclusionMaker()
         {
-            string result = "";
+            string employees = "";
             foreach (var item in Employees.GetWhosBirthdayIs())
             {
-                if (inLogs)
-                {
-                    if (onEmail)
-                    {
-                        result = result + item + "\n\t\t\t\t\t\t<br>";
-                    }
-                    else
-                    {
-                        result = result + item + "\n\t\t\t\t\t\t";
-                    }
+                employees = employees + item.Trim() + "\n";
 
-                }
-                else
-                {
-                    result = result + item + "\n";
-                }
             }
-            return result.Trim();
+            string result = $"\nConclusion:" +
+                $"\nSender mail: {Configs.GetSenderEmail()}" +
+                $"\nSender name: {Configs.GetSenderName()}" +
+                $"\nReciever e-mail: {Configs.GetRecieverEmail()}" +
+                $"\nBirthday givers:\n{employees}";
+            return result;
         }
 
         public static void LoadConfig() //TODO: Is all config loaded?
@@ -139,7 +118,8 @@ namespace MailSender
                     default:
                         break;
                 }
-            }          
+            }
+            Configs.SetMessageText(File.ReadAllText(Configs.GetHtmlPath()));
             ReadXlsFile(Configs.GetXlsPath(), Configs.GetFiveDayMode(), Configs.GetBirthdayColumnNumber(), Configs.GetEmployeeNameColumnNumber());
             ReadHtmlFile(Configs.GetHtmlPath(), Employees.GetCongratulationsString());
             Configs.SetReadConfigSuccess(true);
@@ -154,21 +134,12 @@ namespace MailSender
             }
             else
             {
-                Console.WriteLine("HTML file should have %LIST_OF_EMPLOYEES% string. Current file has no such string. Continue? (y/n)");
-                switch (Console.ReadLine().ToLower())
-                {
-                    case "y":
-                        Configs.AddLogsCollected($"Reading html: SUCCESS.Html file dous not contain list of employees.");
-                        break;
-                    default:
-                        Configs.AddLogsCollected($"Reading html: FAILURE.");
-                        Environment.Exit(0);
-                        break;
-                }
+                Configs.AddLogsCollected($"Reading html: FAILURE.");
+                Configs.AddLogsCollected($"Reason: list of employees can't be inserted.");
             }
         }
 
-        private static void SendMessage(string reciever, string subject, string message, string[] args, bool enableLog)
+        private static void SendMessage(string reciever, string subject, string message)
         {
             try
             {
@@ -186,15 +157,9 @@ namespace MailSender
                     EnableSsl = false
                 };
                 Client.Send(Message);
-                if (enableLog)
+                if (!subject.Contains("log from"))
                 {
-                    Configs.AddLogsCollected($"Sending message: SUCCESS."); //TODO: send conclusion.
-                    Configs.AddLogsCollected($"Conclusion: <br>" +
-                        $"\n\t\t\t\t\t\tSender mail: {Configs.GetSenderEmail()}<br>" +
-                        $"\n\t\t\t\t\t\tSender name: {Configs.GetSenderName()}<br>" +
-                        $"\n\t\t\t\t\t\tReciever e-mail: {Configs.GetRecieverEmail()}<br>" +
-                        $"\n\t\t\t\t\t\t<br>" +
-                        $"\n\t\t\t\t\t\t{ShowBirthdayGivers(true, true)}\n");
+                    Configs.AddLogsCollected($"Sending message: SUCCESS.");
                 }
             }
             catch
@@ -279,26 +244,6 @@ namespace MailSender
             Configs.SetReadConfigSuccess(false);            
         }        
 
-        /*private static bool IsFileLocked(string filename)
-        {
-            bool Locked = false;
-            if (File.Exists(filename))
-            {
-                try
-                {
-                    FileStream fs =
-                        File.Open(filename, FileMode.OpenOrCreate,
-                        FileAccess.ReadWrite, FileShare.None);
-                    fs.Close();
-                }
-                catch
-                {
-                    Locked = true;
-                }
-            }
-            return Locked;
-        }*/
-
         public static void ReadXlsFile(string path, bool fiveDaysMode, string birthdayColumn, string employeeColumn) //TODO: read through locked file. 
         {
             try
@@ -311,7 +256,6 @@ namespace MailSender
                 Worksheet BirthdaySheet = BirthdayBook.Worksheets[0];
                 for (int i = 0; i < BirthdaySheet.Cells.LastRowIndex; i++)
                 {
-
                     try
                     {
                         if (Convert.ToDateTime(BirthdaySheet.Cells[i, bdColumn].ToString()).Date > DateTime.Today)

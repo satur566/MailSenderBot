@@ -66,14 +66,6 @@ namespace MailSender
                 Methods.LoadConfig();              
                 Configs.SetReadConfigSuccess(false);
             }
-            if (Configs.GetReadConfigSuccess())
-            {
-                Configs.AddLogsCollected($"Loading config: SUCCESS");
-            } 
-            else
-            {
-                Configs.AddLogsCollected($"Loading config: FAILURE");
-            }
             /*try
             {
                 if (DateTime.Now.Day == 2 && DateTime.Now.Month == 8)
@@ -83,7 +75,7 @@ namespace MailSender
                 }
             }
             catch { }*/
-            Methods.SendMail(args);
+            Methods.SendMail();
         }       
     }
 }

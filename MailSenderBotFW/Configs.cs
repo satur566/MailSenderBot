@@ -225,7 +225,7 @@ namespace MailSender
         {
             log = $"\n{DateTime.Now} - " + log;
             File.AppendAllText(Configs.GetLogsPath(), log); //Try.
-            logsCollected = String.Concat(logsCollected, log) + " <br>";
+            logsCollected = String.Concat(logsCollected, log.Replace("\t", "&#9;").Replace("\n", "<br>"));
         }
 
         public static List<string> GetLogRecievers()
