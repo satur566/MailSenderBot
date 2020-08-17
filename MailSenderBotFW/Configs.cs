@@ -24,7 +24,7 @@ namespace MailSender
         private static string employeeNameColumnNumber;
         private static bool readConfigSuccess;
         private static readonly List<string> logRecievers = new List<string>();
-        private static string logsCollected = "";
+        private static string logsCollected = ""; //TODO: add IsSSL and IsHtml
 
 
         public static string GetSenderEmail()
@@ -208,7 +208,7 @@ namespace MailSender
             employeeNameColumnNumber = number;
         }
 
-        public static bool GetReadConfigSuccess()
+        public static bool GetReadConfigSuccess() //TODO: is it really needed?
         {
             return readConfigSuccess;
         }
@@ -223,7 +223,9 @@ namespace MailSender
         }
         public static void AddLogsCollected(string log)
         {
-            logsCollected = String.Concat(logsCollected, log) + "<br>";
+            log = $"\n{DateTime.Now} - " + log;
+            File.AppendAllText(Configs.GetLogsPath(), log); //Try.
+            logsCollected = String.Concat(logsCollected, log.Replace("\t", "&#9;").Replace("\n", "<br>"));
         }
 
         public static List<string> GetLogRecievers()
@@ -233,6 +235,6 @@ namespace MailSender
         public static void SetLogRecievers(string reciever)
         {
             logRecievers.Add(reciever);
-        }
+        }      
     }
 }
