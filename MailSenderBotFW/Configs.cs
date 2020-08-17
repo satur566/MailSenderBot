@@ -23,7 +23,7 @@ namespace MailSender
         private static string birthdayColumnNumber;
         private static string employeeNameColumnNumber;
         private static readonly List<string> logRecievers = new List<string>();
-        private static string logsCollected = ""; //TODO: add IsSSL and IsHtml
+        private static string logsCollected = "";
 
 
         public static string GetSenderEmail()

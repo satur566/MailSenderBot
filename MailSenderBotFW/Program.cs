@@ -7,7 +7,7 @@ namespace MailSender
     {
         static void Main(string[] args)
         {
-            Configs.AddLogsCollected($"\n\n\nCurrent user: {Environment.UserName}"); //TODO: editConfig with args -edit parameter1=value1 parameter2=value2   
+            Configs.AddLogsCollected($"\n\n\nCurrent user: {Environment.UserName}"); //TODO: editConfig with args -edit parameter1=value1 parameter2=value2   //TODO: nopassword parameter
             try
             {
                 Methods.LoadConfig();                                
@@ -19,7 +19,7 @@ namespace MailSender
                 Methods.EditConfig("senderEmail", Console.ReadLine());
 
                 Console.Write("Set sender password: ");
-                Methods.EditConfig("senderPassword", Console.ReadLine()); //TODO: password enter with mask.
+                Methods.EditConfig("senderPassword", Console.ReadLine()); //TODO: password enter with mask low priority.
 
                 Console.Write("Set sender displayed name: ");
                 Methods.EditConfig("senderName", Console.ReadLine());
@@ -52,7 +52,7 @@ namespace MailSender
                 Methods.EditConfig("fiveDaysMode", Console.ReadLine());
 
                 Console.Write("Set logs recievers: ");
-                Methods.EditConfig("logRecievers", Console.ReadLine()); //TODO: Check with multimail.               
+                Methods.EditConfig("logRecievers", Console.ReadLine());            
                 try
                 {
                     File.WriteAllText(Configs.GetConfigPath(), string.Empty);

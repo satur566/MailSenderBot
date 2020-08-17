@@ -4,6 +4,8 @@ using ExcelLibrary.SpreadSheet;
 using System.Net.Mail;
 using System.IO;
 using System.Net;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace MailSender
 {
@@ -161,7 +163,7 @@ namespace MailSender
                 };
                 SmtpClient Client = new SmtpClient(Configs.GetServerAddress(), Convert.ToInt32(Configs.GetServerPort()))
                 {
-                    Credentials = new NetworkCredential(Configs.GetSenderUsername(), Configs.GetSenderPassword()),
+                    Credentials = new NetworkCredential(Configs.GetSenderUsername(), DecryptString("b14ca5898a4e4133bbce2mbd02082020", Configs.GetSenderPassword())),
                     EnableSsl = false
                 };
                 Client.Send(Message);
@@ -175,7 +177,7 @@ namespace MailSender
                 Configs.AddLogsCollected($"Sending message: FAILURE.");
             }
         }
-        public static void EditConfig(string parameter, string value) //TODO: return value.
+        public static void EditConfig(string parameter, string value) //TODO: return value. WHY?
         {
             string fileType = "";
             switch (parameter)
@@ -218,8 +220,8 @@ namespace MailSender
                         value = "";
                     }
                     break;
-                case "senderPassword": //TODO: encode.
-
+                case "senderPassword":
+                    value = EncryptString("b14ca5898a4e4133bbce2mbd02082020", value);
                     break;
                 case "fiveDaysMode":
                     if (value.ToLower() == "yes" || value.ToLower() == "y")
@@ -311,6 +313,73 @@ namespace MailSender
             catch
             {
                 Configs.AddLogsCollected($"Reading xls: FAILURE.");
+            }
+        }
+
+        public static string Base64Encode(string plainText)
+        {
+            string value = plainText + " " + plainText;
+            var plainTextBytes = Encoding.UTF8.GetBytes(value);
+            return Convert.ToBase64String(plainTextBytes);
+        }
+
+        public static string Base64Decode(string base64EncodedData)
+        {
+            var base64EncodedBytes = Convert.FromBase64String(base64EncodedData);
+            string result = Encoding.UTF8.GetString(base64EncodedBytes);
+            return result.Substring(0, result.Length / 2);
+        }
+
+        public static string EncryptString(string key, string plainText)
+        {
+            byte[] iv = new byte[16];
+            byte[] array;
+
+            using (Aes aes = Aes.Create())
+            {
+                aes.Key = Encoding.UTF8.GetBytes(key);
+                aes.IV = iv;
+
+                ICryptoTransform encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
+
+                using (MemoryStream memoryStream = new MemoryStream())
+                {
+                    using (CryptoStream cryptoStream = new CryptoStream((Stream)memoryStream, encryptor, CryptoStreamMode.Write))
+                    {
+                        using (StreamWriter streamWriter = new StreamWriter((Stream)cryptoStream))
+                        {
+                            streamWriter.Write(plainText);
+                        }
+
+                        array = memoryStream.ToArray();
+                    }
+                }
+            }
+
+            return Convert.ToBase64String(array);
+        }
+
+        public static string DecryptString(string key, string cipherText)
+        {
+            byte[] iv = new byte[16];
+            byte[] buffer = Convert.FromBase64String(cipherText);
+
+            using (Aes aes = Aes.Create())
+            {
+                aes.Key = Encoding.UTF8.GetBytes(key);
+                aes.IV = iv;
+                ICryptoTransform decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
+
+                using (MemoryStream memoryStream = new MemoryStream(buffer))
+                {
+                    using (CryptoStream cryptoStream = new CryptoStream((Stream)memoryStream, decryptor, CryptoStreamMode.Read))
+                    {
+                        using (StreamReader streamReader = new StreamReader((Stream)cryptoStream))
+                        {
+                            return streamReader.ReadToEnd();
+                        }
+                    }
+                }
             }
         }
     }
