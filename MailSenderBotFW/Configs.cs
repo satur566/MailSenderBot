@@ -11,7 +11,7 @@ namespace MailSender
         private static string senderName;
         private static string senderUsername;
         private static string senderPassword;
-        private static string recieverEmail;
+        private static List<string> emailRecievers = new List<string>();
         private static string messageSubject;
         private static string messageText;
         private static string serverAddress;
@@ -62,13 +62,13 @@ namespace MailSender
             senderPassword = password;
         }
 
-        public static string GetRecieverEmail()
+        public static List<string> GetEmailrecievers()
         {
-            return recieverEmail;
+            return emailRecievers;
         }
-        public static void SetRecieverEmail(string email)
+        public static void SetEmailRecievers(string reciever)
         {
-            recieverEmail = email;
+            emailRecievers.Add(reciever);
         }
 
         public static string GetMessageSubject()
