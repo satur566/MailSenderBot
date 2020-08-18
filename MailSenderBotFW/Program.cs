@@ -10,7 +10,7 @@ namespace MailSender
             Configs.AddLogsCollected($"\n\n\nCurrent user: {Environment.UserName}"); //TODO: editConfig with args -edit parameter1=value1 parameter2=value2   //TODO: nopassword parameter //-silent parameter
             try
             {
-                Methods.LoadConfig();                                
+                Methods.LoadConfig();
             }
             catch
             {
@@ -25,34 +25,34 @@ namespace MailSender
                 Methods.EditConfig("senderName", Console.ReadLine());
 
                 Console.Write("Set reciever e-mail: ");
-                Methods.EditConfig("recieverEmail", Console.ReadLine());
+                Methods.EditConfig("emailRecievers", Console.ReadLine());
 
                 Console.Write("Set message subject: ");
                 Methods.EditConfig("messageSubject", Console.ReadLine());
 
                 Console.Write($"Set a path to html file: ");
-                Methods.EditConfig("htmlPath", Console.ReadLine());              
+                Methods.EditConfig("htmlPath", Console.ReadLine());
 
                 Console.Write($"Set a path to xls file: ");
                 Methods.EditConfig("xlsPath", Console.ReadLine());
 
                 Console.Write("Set a number of column contains birthday dates: ");
-                Methods.EditConfig("birthdayColumnNumber", Console.ReadLine());           
+                Methods.EditConfig("birthdayColumnNumber", Console.ReadLine());
 
                 Console.Write("Set a number of column contains employees names: ");
-                Methods.EditConfig("employeeNameColumnNumber", Console.ReadLine()); 
+                Methods.EditConfig("employeeNameColumnNumber", Console.ReadLine());
 
                 Console.Write("Set server address: ");
                 Methods.EditConfig("serverAddress", Console.ReadLine());
 
                 Console.Write("Set server port (if default - leave empty): ");
-                Methods.EditConfig("serverPort", Console.ReadLine());   
+                Methods.EditConfig("serverPort", Console.ReadLine());
 
                 Console.WriteLine("Use 5/2 workmode?(yes) \nOtherwise will be user full week mode");
                 Methods.EditConfig("fiveDaysMode", Console.ReadLine());
 
                 Console.Write("Set logs recievers: ");
-                Methods.EditConfig("logRecievers", Console.ReadLine());            
+                Methods.EditConfig("logRecievers", Console.ReadLine());
                 try
                 {
                     File.WriteAllText(Configs.GetConfigPath(), string.Empty);
@@ -63,9 +63,9 @@ namespace MailSender
                 {
                     Configs.AddLogsCollected($"Config save: FAILURE.");
                 }
-                Methods.LoadConfig();              
+                Methods.LoadConfig();
             }
             Methods.SendMail();
-        }       
+        }
     }
 }
