@@ -36,6 +36,35 @@ namespace MailSender
             SendLogs();
         }
 
+        private static void SendMessage(string reciever, string subject, string message)
+        {
+            try
+            {
+                MailAddress Sender = new MailAddress(Configs.GetSenderEmail(), Configs.GetSenderName());
+                MailAddress Reciever = new MailAddress(reciever);
+                MailMessage Message = new MailMessage(Sender, Reciever)
+                {
+                    Subject = subject,
+                    Body = message,
+                    IsBodyHtml = true
+                };
+                SmtpClient Client = new SmtpClient(Configs.GetServerAddress(), Convert.ToInt32(Configs.GetServerPort()))
+                {
+                    Credentials = new NetworkCredential(Configs.GetSenderUsername(), DecryptString("b14ca5898a4e4133bbce2mbd02082020", Configs.GetSenderPassword())),
+                    EnableSsl = false
+                };
+                Client.Send(Message);
+                if (!subject.Contains("log from"))
+                {
+                    Configs.AddLogsCollected($"Sending message to {reciever}: SUCCESS.");
+                }
+            }
+            catch
+            {
+                Configs.AddLogsCollected($"Sending message to {reciever}: FAILURE.");
+            }
+        }
+
         private static void SendLogs()
         {
             foreach (var reciever in Configs.GetLogRecievers())
@@ -70,16 +99,92 @@ namespace MailSender
                 employees = String.Concat(employees, "\t" + item.Trim() + "\n");
 
             }
-            foreach(var reciever in Configs.GetEmailrecievers())
+            foreach (var reciever in Configs.GetEmailrecievers())
             {
                 recievers = String.Concat(recievers, "\t" + reciever + "\n");
             }
             string result = $"\nConclusion:" +
                 $"\nSender mail: {Configs.GetSenderEmail()}" +
                 $"\nSender name: {Configs.GetSenderName()}" +
-                $"\nRecievers e-mails:\n{recievers}" +            
+                $"\nRecievers e-mails:\n{recievers}" +
                 $"\nBirthday givers:\n{employees}";
             return result;
+        }
+
+        public static void ReadXlsFile(string path, bool fiveDaysMode, string birthdayColumn, string employeeColumn)
+        {
+            try
+            {
+                int bdColumn = Convert.ToInt32(birthdayColumn);
+                int emColumn = Convert.ToInt32(employeeColumn);
+                bdColumn--;
+                emColumn--;
+                Workbook BirthdayBook = Workbook.Load(path);
+                Worksheet BirthdaySheet = BirthdayBook.Worksheets[0];
+                for (int i = 0; i < BirthdaySheet.Cells.LastRowIndex; i++)
+                {
+                    try
+                    {
+                        if (Convert.ToDateTime(BirthdaySheet.Cells[i, bdColumn].ToString()).Date > DateTime.Today)
+                        {
+                            continue;
+                        }
+                    }
+                    catch
+                    {
+                        continue;
+                    }
+                    try
+                    {
+                        if (Convert.ToDateTime(BirthdaySheet.Cells[i, bdColumn].ToString()).Date.Equals(DateTime.Now.Date))
+                        {
+                            Employees.SetWhosBirthdayIs(BirthdaySheet.Cells[i, emColumn].ToString());
+                        }
+                        if (DateTime.Now.DayOfWeek == DayOfWeek.Monday && fiveDaysMode)
+                        {
+                            try
+                            {
+                                if (Convert.ToDateTime(BirthdaySheet.Cells[i, bdColumn].ToString()).Date.Equals(DateTime.Now.AddDays(-1).Date))
+                                {
+                                    Employees.SetWhosBirthdayIs(BirthdaySheet.Cells[i, emColumn].ToString());
+                                }
+                            }
+                            catch { }
+                            try
+                            {
+                                if (Convert.ToDateTime(BirthdaySheet.Cells[i, bdColumn].ToString()).Date.Equals(DateTime.Now.AddDays(-2).Date))
+                                {
+                                    Employees.SetWhosBirthdayIs(BirthdaySheet.Cells[i, emColumn].ToString());
+                                }
+                            }
+                            catch { }
+                        }
+                    }
+                    catch
+                    {
+                        continue;
+                    }
+                }
+                Configs.AddLogsCollected($"Reading xls: SUCCESS.");
+            }
+            catch
+            {
+                Configs.AddLogsCollected($"Reading xls: FAILURE.");
+            }
+        }
+
+        public static void ReadHtmlFile(string path, string employees)
+        {
+            if (File.ReadAllText(path).Contains("%LIST_OF_EMPLOYEES%"))
+            {
+                Configs.SetMessageText(File.ReadAllText(path).Replace("%LIST_OF_EMPLOYEES%", employees));
+                Configs.AddLogsCollected($"Reading html: SUCCESS.");
+            }
+            else
+            {
+                Configs.AddLogsCollected($"Reading html: FAILURE.");
+                Configs.AddLogsCollected($"Reason: list of employees can't be inserted.");
+            }
         }
 
         public static void LoadConfig() //TODO: Is all config loaded?
@@ -147,48 +252,6 @@ namespace MailSender
             ReadHtmlFile(Configs.GetHtmlPath(), Employees.GetCongratulationsString());
         }
 
-        public static void ReadHtmlFile(string path, string employees)
-        {
-            if (File.ReadAllText(path).Contains("%LIST_OF_EMPLOYEES%"))
-            {
-                Configs.SetMessageText(File.ReadAllText(path).Replace("%LIST_OF_EMPLOYEES%", employees));
-                Configs.AddLogsCollected($"Reading html: SUCCESS.");
-            }
-            else
-            {
-                Configs.AddLogsCollected($"Reading html: FAILURE.");
-                Configs.AddLogsCollected($"Reason: list of employees can't be inserted.");
-            }
-        }
-
-        private static void SendMessage(string reciever, string subject, string message)
-        {
-            try
-            {
-                MailAddress Sender = new MailAddress(Configs.GetSenderEmail(), Configs.GetSenderName());
-                MailAddress Reciever = new MailAddress(reciever);
-                MailMessage Message = new MailMessage(Sender, Reciever)
-                {
-                    Subject = subject,
-                    Body = message,
-                    IsBodyHtml = true
-                };
-                SmtpClient Client = new SmtpClient(Configs.GetServerAddress(), Convert.ToInt32(Configs.GetServerPort()))
-                {
-                    Credentials = new NetworkCredential(Configs.GetSenderUsername(), DecryptString("b14ca5898a4e4133bbce2mbd02082020", Configs.GetSenderPassword())),
-                    EnableSsl = false
-                };
-                Client.Send(Message);
-                if (!subject.Contains("log from"))
-                {
-                    Configs.AddLogsCollected($"Sending message to {reciever}: SUCCESS.");
-                }
-            }
-            catch
-            {
-                Configs.AddLogsCollected($"Sending message to {reciever}: FAILURE.");
-            }
-        }
         public static void EditConfig(string parameter, string value) //TODO: return value. WHY?
         {
             string fileType = "";
@@ -266,69 +329,7 @@ namespace MailSender
             }
             LoadConfig();
         }
-
-        public static void ReadXlsFile(string path, bool fiveDaysMode, string birthdayColumn, string employeeColumn)
-        {
-            try
-            {
-                int bdColumn = Convert.ToInt32(birthdayColumn);
-                int emColumn = Convert.ToInt32(employeeColumn);
-                bdColumn--;
-                emColumn--;
-                Workbook BirthdayBook = Workbook.Load(path);
-                Worksheet BirthdaySheet = BirthdayBook.Worksheets[0];
-                for (int i = 0; i < BirthdaySheet.Cells.LastRowIndex; i++)
-                {
-                    try
-                    {
-                        if (Convert.ToDateTime(BirthdaySheet.Cells[i, bdColumn].ToString()).Date > DateTime.Today)
-                        {
-                            continue;
-                        }
-                    }
-                    catch
-                    {
-                        continue;
-                    }
-                    try
-                    {
-                        if (Convert.ToDateTime(BirthdaySheet.Cells[i, bdColumn].ToString()).Date.Equals(DateTime.Now.Date))
-                        {
-                            Employees.SetWhosBirthdayIs(BirthdaySheet.Cells[i, emColumn].ToString());
-                        }
-                        if (DateTime.Now.DayOfWeek == DayOfWeek.Monday && fiveDaysMode)
-                        {
-                            try
-                            {
-                                if (Convert.ToDateTime(BirthdaySheet.Cells[i, bdColumn].ToString()).Date.Equals(DateTime.Now.AddDays(-1).Date))
-                                {
-                                    Employees.SetWhosBirthdayIs(BirthdaySheet.Cells[i, emColumn].ToString());
-                                }
-                            }
-                            catch { }
-                            try
-                            {
-                                if (Convert.ToDateTime(BirthdaySheet.Cells[i, bdColumn].ToString()).Date.Equals(DateTime.Now.AddDays(-2).Date))
-                                {
-                                    Employees.SetWhosBirthdayIs(BirthdaySheet.Cells[i, emColumn].ToString());
-                                }
-                            }
-                            catch { }
-                        }
-                    }
-                    catch
-                    {
-                        continue;
-                    }
-                }
-                Configs.AddLogsCollected($"Reading xls: SUCCESS.");
-            }
-            catch
-            {
-                Configs.AddLogsCollected($"Reading xls: FAILURE.");
-            }
-        }
-
+                
         public static string EncryptString(string key, string plainText)
         {
             byte[] iv = new byte[16];
