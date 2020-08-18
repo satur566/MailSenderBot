@@ -100,7 +100,7 @@ namespace MailSender
                     case "senderName":
                         Configs.SetSenderName(value);
                         break;
-                    case "recieverEmail":
+                    case "emailRecievers":
                         string[] mailRecievers = value.Split(',');
                         foreach (var reciever in mailRecievers)
                         {
