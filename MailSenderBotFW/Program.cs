@@ -30,22 +30,19 @@ namespace MailSender
                             case "-help":
                                 //TODO: describe every parameter.
                                 break;
-                            case "-showconfigure":                                
-                                Configs.GetSenderEmail(); //TODO: add some console output.
-                                Configs.GetSenderPassword();
-                                Configs.GetSenderName();
-                                Configs.GetEmailrecievers();
-                                Configs.GetMessageSubject();
-                                Configs.GetHtmlPath();
-                                Configs.GetXlsPath();
-                                Configs.GetEmployeeNameColumnNumber();
-                                Configs.GetBirthdayColumnNumber();
-                                Configs.GetServerAddress();
-                                Configs.GetServerPort();
-                                Configs.GetFiveDayMode();
-                                Configs.GetLogRecievers();
+                            case "-showconfig":
+                                foreach (var line in File.ReadAllLines(Configs.GetConfigPath()))
+                                {
+                                    Console.WriteLine(line);
+                                }
                                 break;
                             case "-editconfig": //TODO: edit one or more parameters until '-' occured.
+                                if (i + 1 <= args.Length) {
+                                    for (int j = i + 1; j < args.Length && !args[j].StartsWith("-"); j++)
+                                    {
+                                        Console.WriteLine(args[j]);
+                                    }
+                                }
                                 break;
                             default:
                                 Console.WriteLine("Unknown parameter.");
