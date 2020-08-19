@@ -40,7 +40,14 @@ namespace MailSender
                                 if (i + 1 <= args.Length) {
                                     for (int j = i + 1; j < args.Length && !args[j].StartsWith("-"); j++)
                                     {
-                                        Console.WriteLine(args[j]);
+                                        try
+                                        {
+                                            Methods.EditConfig(args[j].Substring(0, args[j].IndexOf('=')), args[j].Substring(args[j].IndexOf('=') + 1, args[j].Length - args[j].IndexOf('=') - 1));
+                                        }
+                                        catch
+                                        {
+                                            Console.WriteLine("Unable to edit configuration. Invalid parameter.");
+                                        }
                                     }
                                 }
                                 break;
