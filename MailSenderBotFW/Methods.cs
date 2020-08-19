@@ -252,7 +252,7 @@ namespace MailSender
             ReadHtmlFile(Configs.GetHtmlPath(), Employees.GetCongratulationsString());
         }
 
-        public static void EditConfig(string parameter, string value) //TODO: return value. WHY?
+        public static void EditConfig(string parameter, string value) //TODO: make Config as array with fixed config fields. In creation of file fill it with parameters with null values. Edit config shoud searth and replace line.
         {
             string fileType = "";
             switch (parameter)
