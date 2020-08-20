@@ -38,18 +38,30 @@ namespace MailSender
                                 break;
                             case "-editconfig": //TODO: edit one or more parameters until '-' occured.
                                 if (i + 1 <= args.Length) {
+                                    try
+                                    {
+                                        Methods.LoadConfig();
+                                    }
+                                    catch
+                                    {
+                                        Console.WriteLine("Unable to find previous configuration.");
+                                    }
                                     for (int j = i + 1; j < args.Length && !args[j].StartsWith("-"); j++)
                                     {
                                         try
                                         {
-                                            Methods.EditConfig(args[j].Substring(0, args[j].IndexOf('=')), args[j].Substring(args[j].IndexOf('=') + 1, args[j].Length - args[j].IndexOf('=') - 1));
+                                            string parameter = args[j].Substring(0, args[j].IndexOf('='));
+                                            string value = args[j].Substring(args[j].IndexOf('=') + 1, args[j].Length - args[j].IndexOf('=') - 1);
+                                            Methods.EditConfig(parameter, value);
                                         }
                                         catch
                                         {
                                             Console.WriteLine("Unable to edit configuration. Invalid parameter.");
                                         }
+                                        i++;
                                     }
                                 }
+                                Methods.SaveConfig();
                                 break;
                             default:
                                 Console.WriteLine("Unknown parameter.");

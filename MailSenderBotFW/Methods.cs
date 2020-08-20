@@ -189,7 +189,7 @@ namespace MailSender
 
         public static void LoadConfig() //TODO: Is all config loaded?
         {
-            Configs.SetConfigurations(File.ReadAllLines(Configs.GetConfigPath()));
+            Configs.SetConfigurations(new List<string>(File.ReadAllLines(Configs.GetConfigPath())));
             foreach (var item in Configs.GetConfigurations())
             {
                 string parameter = item.Substring(0, item.IndexOf('='));
@@ -314,7 +314,7 @@ namespace MailSender
                 default:
                     break;
             }
-            Configs.SetConfigurations(parameter + "=" + value);
+            Configs.ChangeConfigurations(parameter + "=" + value);
             Configs.AddLogsCollected($"Config: " + parameter + "=" + value);
         }
 

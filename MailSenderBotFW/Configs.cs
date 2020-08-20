@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 
 namespace MailSender
@@ -16,20 +17,7 @@ namespace MailSender
         private static string messageText;
         private static string serverAddress;
         private static string serverPort;
-        private static string[] configurations = new string[]{"senderEmail=\n",
-                        "senderUsername=\n",
-                        "senderPassword=\n",
-                        "senderName=\n",
-                        "recieverEmail=\n",
-                        "messageSubject=\n",
-                        "htmlPath=\n",
-                        "xlsPath=\n",
-                        "birthdayColumnNumber=\n",
-                        "employeeNameColumnNumber=\n",
-                        "serverAddress=\n",
-                        "serverPort=\n",
-                        "fiveDaysMode=\n",
-                        "logRecievers=\n" };
+        private static List<string> configurations = new List<string>();
         private static string htmlPath;
         private static string xlsPath;
         private static bool fiveDayMode;
@@ -163,24 +151,23 @@ namespace MailSender
             return configDirectory + "\\config.cfg";
         }
 
-        public static string[] GetConfigurations()
+        public static List<string> GetConfigurations()
         {
             return configurations;
         }
-        public static void SetConfigurations(string[] configList)
+        public static void SetConfigurations(List<string> configList)
         {
             configurations = configList;
         }
-        public static void SetConfigurations(string entry)
+        public static void ChangeConfigurations(string entry)
         {
             string entryParameter = entry.Substring(0, entry.IndexOf('='));
-            for (int i = 0; i < configurations.Length; i++)
+            if (configurations.Contains(configurations.FirstOrDefault(value => value.Contains(entryParameter)))) {
+                configurations.Remove(configurations.FirstOrDefault(value => value.Contains(entryParameter)));
+                configurations.Add(entry);
+            } else
             {
-                string currentParameter = configurations[i].Substring(0, configurations[i].IndexOf('='));
-                if (entryParameter.Equals(currentParameter))
-                {
-                    configurations[i] = entry;
-                }
+                configurations.Add(entry);
             }
         }
 
