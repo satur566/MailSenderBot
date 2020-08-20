@@ -16,7 +16,20 @@ namespace MailSender
         private static string messageText;
         private static string serverAddress;
         private static string serverPort;
-        private static List<string> configurations = new List<string>();
+        private static string[] configurations = new string[]{"senderEmail=\n",
+                        "senderUsername=\n",
+                        "senderPassword=\n",
+                        "senderName=\n",
+                        "recieverEmail=\n",
+                        "messageSubject=\n",
+                        "htmlPath=\n",
+                        "xlsPath=\n",
+                        "birthdayColumnNumber=\n",
+                        "employeeNameColumnNumber=\n",
+                        "serverAddress=\n",
+                        "serverPort=\n",
+                        "fiveDaysMode=\n",
+                        "logRecievers=\n" };
         private static string htmlPath;
         private static string xlsPath;
         private static bool fiveDayMode;
@@ -138,6 +151,7 @@ namespace MailSender
                     Directory.CreateDirectory(configDirectory);
                     var file = File.Create(configDirectory + "\\config.cfg");
                     file.Close();
+                    File.WriteAllLines(configDirectory + "\\config.cfg", configurations);
                 }
                 catch
                 {
@@ -149,17 +163,25 @@ namespace MailSender
             return configDirectory + "\\config.cfg";
         }
 
-        public static List<string> GetConfigurations()
+        public static string[] GetConfigurations()
         {
             return configurations;
         }
-        public static void SetConfigurations(List<string> list)
+        public static void SetConfigurations(string[] configList)
         {
-            configurations = list;
+            configurations = configList;
         }
         public static void SetConfigurations(string entry)
         {
-            configurations.Add(entry);
+            string entryParameter = entry.Substring(0, entry.IndexOf('='));
+            for (int i = 0; i < configurations.Length; i++)
+            {
+                string currentParameter = configurations[i].Substring(0, configurations[i].IndexOf('='));
+                if (entryParameter.Equals(currentParameter))
+                {
+                    configurations[i] = entry;
+                }
+            }
         }
 
         public static string GetHtmlPath()

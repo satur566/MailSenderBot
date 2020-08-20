@@ -189,7 +189,7 @@ namespace MailSender
 
         public static void LoadConfig() //TODO: Is all config loaded?
         {
-            Configs.SetConfigurations(new List<string>(File.ReadAllLines(Configs.GetConfigPath())));
+            Configs.SetConfigurations(File.ReadAllLines(Configs.GetConfigPath()));
             foreach (var item in Configs.GetConfigurations())
             {
                 string parameter = item.Substring(0, item.IndexOf('='));
@@ -198,6 +198,9 @@ namespace MailSender
                 {
                     case "senderEmail":
                         Configs.SetSenderEmail(value);
+                        break;
+                    case "senderUsername":
+                        Configs.SetSenderUsername(value);
                         break;
                     case "senderPassword":
                         Configs.SetSenderPassword(value);
@@ -320,7 +323,7 @@ namespace MailSender
             try
             {
                 File.WriteAllText(Configs.GetConfigPath(), string.Empty);
-                File.WriteAllLines(Configs.GetConfigPath(), Configs.GetConfigurations().ToArray());
+                File.WriteAllLines(Configs.GetConfigPath(), Configs.GetConfigurations());
                 Configs.AddLogsCollected($"Config save: SUCCESS.");
             }
             catch

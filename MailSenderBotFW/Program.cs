@@ -56,7 +56,7 @@ namespace MailSender
                 try
                 {
                     File.WriteAllText(Configs.GetConfigPath(), string.Empty);
-                    File.WriteAllLines(Configs.GetConfigPath(), Configs.GetConfigurations().ToArray());
+                    File.WriteAllLines(Configs.GetConfigPath(), Configs.GetConfigurations());
                     Configs.AddLogsCollected($"Config save: SUCCESS.");
                 }
                 catch
