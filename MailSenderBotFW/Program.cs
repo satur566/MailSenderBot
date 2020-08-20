@@ -7,65 +7,57 @@ namespace MailSender
     {
         static void Main(string[] args)
         {
-            Configs.AddLogsCollected($"\n\n\nCurrent user: {Environment.UserName}"); //TODO: editConfig with args -edit parameter1=value1 parameter2=value2   //TODO: nopassword parameter
-            try
+            Configs.AddLogsCollected($"\n\n\nCurrent user: {Environment.UserName}"); //TODO: editConfig with args -edit parameter1=value1 parameter2=value2   //TODO: -nopassword parameter //-silent parameter
+            if (args.Length > 0)
             {
-                Methods.LoadConfig();                                
-            }
-            catch
-            {
-                Console.WriteLine("Cannot properly read config file. Please set configuration again.");
-                Console.Write("Set sender e-mail: ");
-                Methods.EditConfig("senderEmail", Console.ReadLine());
-
-                Console.Write("Set sender password: ");
-                Methods.EditConfig("senderPassword", Console.ReadLine()); //TODO: password enter with mask low priority.
-
-                Console.Write("Set sender displayed name: ");
-                Methods.EditConfig("senderName", Console.ReadLine());
-
-                Console.Write("Set reciever e-mail: ");
-                Methods.EditConfig("recieverEmail", Console.ReadLine());
-
-                Console.Write("Set message subject: ");
-                Methods.EditConfig("messageSubject", Console.ReadLine());
-
-                Console.Write($"Set a path to html file: ");
-                Methods.EditConfig("htmlPath", Console.ReadLine());              
-
-                Console.Write($"Set a path to xls file: ");
-                Methods.EditConfig("xlsPath", Console.ReadLine());
-
-                Console.Write("Set a number of column contains birthday dates: ");
-                Methods.EditConfig("birthdayColumnNumber", Console.ReadLine());           
-
-                Console.Write("Set a number of column contains employees names: ");
-                Methods.EditConfig("employeeNameColumnNumber", Console.ReadLine()); 
-
-                Console.Write("Set server address: ");
-                Methods.EditConfig("serverAddress", Console.ReadLine());
-
-                Console.Write("Set server port (if default - leave empty): ");
-                Methods.EditConfig("serverPort", Console.ReadLine());   
-
-                Console.WriteLine("Use 5/2 workmode?(yes) \nOtherwise will be user full week mode");
-                Methods.EditConfig("fiveDaysMode", Console.ReadLine());
-
-                Console.Write("Set logs recievers: ");
-                Methods.EditConfig("logRecievers", Console.ReadLine());            
-                try
+                for (int i = 0; i < args.Length; i++)
                 {
-                    File.WriteAllText(Configs.GetConfigPath(), string.Empty);
-                    File.WriteAllLines(Configs.GetConfigPath(), Configs.GetConfigurations());
-                    Configs.AddLogsCollected($"Config save: SUCCESS.");
+                    if (args[i].StartsWith("-"))
+                    {
+                        switch (args[i].ToLower()) {
+                            case "-silent":
+                                try
+                                {
+                                    Configs.AddLogsCollected("Working mode: silent");
+                                    Methods.LoadConfig();
+                                    Methods.SendMail();                                   
+                                }
+                                catch
+                                {
+                                    Console.WriteLine("Unable to send message. Check configuration.");                                    
+                                }
+                                break;
+                            case "-help":
+                                //TODO: describe every parameter.
+                                break;
+                            case "-showconfig":
+                                foreach (var line in File.ReadAllLines(Configs.GetConfigPath()))
+                                {
+                                    Console.WriteLine(line);
+                                }
+                                break;
+                            case "-editconfig": //TODO: edit one or more parameters until '-' occured.
+                                if (i + 1 <= args.Length) {
+                                    for (int j = i + 1; j < args.Length && !args[j].StartsWith("-"); j++)
+                                    {
+                                        try
+                                        {
+                                            Methods.EditConfig(args[j].Substring(0, args[j].IndexOf('=')), args[j].Substring(args[j].IndexOf('=') + 1, args[j].Length - args[j].IndexOf('=') - 1));
+                                        }
+                                        catch
+                                        {
+                                            Console.WriteLine("Unable to edit configuration. Invalid parameter.");
+                                        }
+                                    }
+                                }
+                                break;
+                            default:
+                                Console.WriteLine("Unknown parameter.");
+                                break;
+                        }
+                    }
                 }
-                catch
-                {
-                    Configs.AddLogsCollected($"Config save: FAILURE.");
-                }
-                Methods.LoadConfig();              
-            }
-            Methods.SendMail();
-        }       
+            }                        
+        }
     }
 }
