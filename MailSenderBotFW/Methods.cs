@@ -209,11 +209,7 @@ namespace MailSender
                         Configs.SetSenderName(value);
                         break;
                     case "emailRecievers":
-                        string[] mailRecievers = value.Split(',');
-                        foreach (var reciever in mailRecievers)
-                        {
-                            Configs.SetEmailRecievers(reciever.Trim());
-                        }
+                        Configs.SetEmailRecievers(new List<string>(value.Split(',')));                        
                         break;
                     case "messageSubject":
                         Configs.SetMessageSubject(value);
@@ -240,11 +236,7 @@ namespace MailSender
                         Configs.SetFiveDayMode(Boolean.TryParse(value, out _));
                         break;
                     case "logRecievers":
-                        string[] logRecievers = value.Split(',');
-                        foreach (var reciever in logRecievers)
-                        {
-                            Configs.SetLogRecievers(reciever.Trim());
-                        }
+                        Configs.SetLogRecievers(new List<string>(value.Split(',')));
                         break;
                     default:
                         break;

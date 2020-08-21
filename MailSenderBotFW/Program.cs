@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 
 namespace MailSender
 {
@@ -15,29 +16,17 @@ namespace MailSender
                     if (args[i].StartsWith("-"))
                     {
                         switch (args[i].ToLower()) {
-                            case "-silent":
-                                try
-                                {
-                                    Configs.AddLogsCollected("Working mode: silent");
-                                    Methods.LoadConfig();
-                                    Methods.SendMail();                                   
-                                }
-                                catch
-                                {
-                                    Console.WriteLine("Unable to send message. Check configuration.");                                    
-                                }
-                                break;
                             case "-help":
                                 //TODO: describe every parameter.
                                 break;
                             case "-showconfig":
-                                foreach (var line in File.ReadAllLines(Configs.GetConfigPath()))
+                                foreach (var line in File.ReadAllLines(Configs.GetConfigPath())) 
                                 {
                                     Console.WriteLine(line);
                                 }
                                 break;
-                            case "-editconfig": //TODO: edit one or more parameters until '-' occured.
-                                if (i + 1 <= args.Length) {
+                            case "-editconfig":
+                                if (i + 1 <= args.Length) { //TODO: trouble with LoadConfig(). Multiple usage cause problems. Needs to be solved. Troubles: multiplicates mail and logs recievers, employees list.
                                     try
                                     {
                                         Methods.LoadConfig();
@@ -51,7 +40,7 @@ namespace MailSender
                                         try
                                         {
                                             string parameter = args[j].Substring(0, args[j].IndexOf('='));
-                                            string value = args[j].Substring(args[j].IndexOf('=') + 1, args[j].Length - args[j].IndexOf('=') - 1);
+                                            string  value = args[j].Substring(args[j].IndexOf('=') + 1, args[j].Length - args[j].IndexOf('=') - 1);                                               
                                             Methods.EditConfig(parameter, value);
                                         }
                                         catch
@@ -69,7 +58,23 @@ namespace MailSender
                         }
                     }
                 }
-            }                        
+                if(args.Contains("-silent"))
+                {
+                    try
+                    {
+                        Configs.AddLogsCollected("Working mode: silent");
+                        Methods.LoadConfig();
+                        Methods.SendMail();
+                    }
+                    catch
+                    {
+                        Console.WriteLine("Unable to send message. Check configuration.");
+                    }
+                }
+            } else
+            {
+                //TODO: launch WPF app.
+            }                       
         }
     }
 }
