@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 
 namespace MailSender
 {
@@ -7,65 +8,104 @@ namespace MailSender
     {
         static void Main(string[] args)
         {
-            Configs.AddLogsCollected($"\n\n\nCurrent user: {Environment.UserName}"); //TODO: editConfig with args -edit parameter1=value1 parameter2=value2   //TODO: nopassword parameter
-            try
+            Configs.AddLogsCollected($"\n\n\nCurrent user: {Environment.UserName}");
+            if (args.Length > 0)
             {
-                Methods.LoadConfig();                                
+                for (int i = 0; i < args.Length; i++)
+                {
+                    if (args[i].StartsWith("-"))
+                    {
+                        switch (args[i].ToLower())
+                        {
+                            case "-silent":
+                                break;
+                            case "-help":
+                                Console.WriteLine($"\n-silent\t\t\t\tLaunch program without any GUI and output, excluding log.\n" +
+                                    $"-showconfig\t\t\tShow current configuration stored in config.cfg file.\n" +
+                                    $"-editconfig\t\t\tEdit current configuration stored in config.cfg file. \n" +
+                                    $"-help\t\t\t\tDisplays help.\n" +
+                                    $"\nList of parameters available:\n\n" +
+                                    $"senderEmail\t\t\tE-mail address of sender.\n" +
+                                    $"senderUsername\t\t\tE-mail server authorisation username.\n" +
+                                    $"senderPassword\t\t\tE-mail server authorisation username. Note that you cannot change password via" +
+                                    $"\n\t\t\t\tconfig.cfg manually due to encoding/decoding.\n" +
+                                    $"senderName\t\t\tSender name displayed to reciever.\n\n" +
+                                    $"emailRecievers\t\t\tList of e-mail recievers comma separated.\n" +
+                                    $"messageSubject\t\t\tDisplayed subject of e-mail.\n" +
+                                    $"htmlPath\t\t\tPath to html file. File should contain at least %LIST_OF_EMPLOYEES% string " +
+                                    $"\n\t\t\t\tinside and has .html file extension.\n" +
+                                    $"xlsPath\t\t\t\tPath to xls file. File should has .xls file extension.\n" +
+                                    $"birthdayColumnNumber\t\tNumber of column, contains date of employee birthday. " +
+                                    $"\n\t\t\t\tNote that date format starts with \' i.e \'{DateTime.Now}\n" +
+                                    $"employeeNameColumnNumber\tNumber of column, contains employee full name.\n" +
+                                    $"serverAddress\t\t\tIP-address of e-mail server.\n" +
+                                    $"serverPort\t\t\tPort of e-mail server. If leaved empty - used default 25 port.\n" +
+                                    $"fiveDaysMode\t\t\tWorking mode that allow send e-mails only from Monday to Friday. " +
+                                    $"\n\t\t\t\tEmployees which birthday date happened on Saturday or Sunday " +
+                                    $"\n\t\t\t\twill be congratulated on Monday.\n" +
+                                    $"logRecievers\t\t\tList of logs recievers comma separated.\n" +
+                                    $"\nUsage exaple:\n\n" +
+                                    $"-editconfig senderEmail=info@mail.com senderPassword=Qwerty123 htmlPath=C:\\temp\\file.html emailRecievers=i.ivanov@mail.com, p.petrov@mail.com\n");
+                                Console.ReadKey();
+                                break;
+                            case "-showconfig":
+                                foreach (var line in File.ReadAllLines(Configs.GetConfigPath()))
+                                {
+                                    Console.WriteLine(line);
+                                }
+                                break;
+                            case "-editconfig":
+                                if (i + 1 <= args.Length)
+                                {
+                                    try
+                                    {
+                                        Methods.LoadConfig();
+                                    }
+                                    catch
+                                    {
+                                        Console.WriteLine("Unable to find previous configuration.");
+                                    }
+                                    for (int j = i + 1; j < args.Length && !args[j].StartsWith("-"); j++)
+                                    {
+                                        try
+                                        {
+                                            string parameter = args[j].Substring(0, args[j].IndexOf('='));
+                                            string value = args[j].Substring(args[j].IndexOf('=') + 1, args[j].Length - args[j].IndexOf('=') - 1);
+                                            Methods.EditConfig(parameter, value);
+                                        }
+                                        catch
+                                        {
+                                            Console.WriteLine("Unable to edit configuration. Invalid parameter.");
+                                        }
+                                        i++;
+                                    }
+                                }
+                                Methods.SaveConfig();
+                                break;
+                            default:
+                                Console.WriteLine("Unknown parameter.");
+                                break;
+                        }
+                    }
+                }
+                if (args.Contains("-silent"))
+                {
+                    try
+                    {
+                        Configs.AddLogsCollected("Working mode: silent");
+                        Methods.LoadConfig();
+                        Methods.SendMail();
+                    }
+                    catch
+                    {
+                        Console.WriteLine("Unable to send message. Check configuration.");
+                    }
+                }
             }
-            catch
+            else
             {
-                Console.WriteLine("Cannot properly read config file. Please set configuration again.");
-                Console.Write("Set sender e-mail: ");
-                Methods.EditConfig("senderEmail", Console.ReadLine());
-
-                Console.Write("Set sender password: ");
-                Methods.EditConfig("senderPassword", Console.ReadLine()); //TODO: password enter with mask low priority.
-
-                Console.Write("Set sender displayed name: ");
-                Methods.EditConfig("senderName", Console.ReadLine());
-
-                Console.Write("Set reciever e-mail: ");
-                Methods.EditConfig("recieverEmail", Console.ReadLine());
-
-                Console.Write("Set message subject: ");
-                Methods.EditConfig("messageSubject", Console.ReadLine());
-
-                Console.Write($"Set a path to html file: ");
-                Methods.EditConfig("htmlPath", Console.ReadLine());              
-
-                Console.Write($"Set a path to xls file: ");
-                Methods.EditConfig("xlsPath", Console.ReadLine());
-
-                Console.Write("Set a number of column contains birthday dates: ");
-                Methods.EditConfig("birthdayColumnNumber", Console.ReadLine());           
-
-                Console.Write("Set a number of column contains employees names: ");
-                Methods.EditConfig("employeeNameColumnNumber", Console.ReadLine()); 
-
-                Console.Write("Set server address: ");
-                Methods.EditConfig("serverAddress", Console.ReadLine());
-
-                Console.Write("Set server port (if default - leave empty): ");
-                Methods.EditConfig("serverPort", Console.ReadLine());   
-
-                Console.WriteLine("Use 5/2 workmode?(yes) \nOtherwise will be user full week mode");
-                Methods.EditConfig("fiveDaysMode", Console.ReadLine());
-
-                Console.Write("Set logs recievers: ");
-                Methods.EditConfig("logRecievers", Console.ReadLine());            
-                try
-                {
-                    File.WriteAllText(Configs.GetConfigPath(), string.Empty);
-                    File.WriteAllLines(Configs.GetConfigPath(), Configs.GetConfigurations().ToArray());
-                    Configs.AddLogsCollected($"Config save: SUCCESS.");
-                }
-                catch
-                {
-                    Configs.AddLogsCollected($"Config save: FAILURE.");
-                }
-                Methods.LoadConfig();              
+                //TODO: launch WPF app.
             }
-            Methods.SendMail();
-        }       
+        }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 
 namespace MailSender
@@ -11,7 +12,7 @@ namespace MailSender
         private static string senderName;
         private static string senderUsername;
         private static string senderPassword;
-        private static string recieverEmail;
+        private static List<string> emailRecievers = new List<string>();
         private static string messageSubject;
         private static string messageText;
         private static string serverAddress;
@@ -62,13 +63,17 @@ namespace MailSender
             senderPassword = password;
         }
 
-        public static string GetRecieverEmail()
+        public static List<string> GetEmailrecievers()
         {
-            return recieverEmail;
+            return emailRecievers;
         }
-        public static void SetRecieverEmail(string email)
+        public static void SetEmailRecievers(List<string> recievers)
         {
-            recieverEmail = email;
+            emailRecievers.Clear();
+            foreach (var reciever in recievers)
+            {
+                emailRecievers.Add(reciever);
+            }
         }
 
         public static string GetMessageSubject()
@@ -138,6 +143,7 @@ namespace MailSender
                     Directory.CreateDirectory(configDirectory);
                     var file = File.Create(configDirectory + "\\config.cfg");
                     file.Close();
+                    File.WriteAllLines(configDirectory + "\\config.cfg", configurations);
                 }
                 catch
                 {
@@ -149,17 +155,115 @@ namespace MailSender
             return configDirectory + "\\config.cfg";
         }
 
-        public static List<string> GetConfigurations()
+        private static void Move<T>(this List<T> list, int oldIndex, int newIndex)
         {
+            T item = list[oldIndex];
+            list.RemoveAt(oldIndex);
+            list.Insert(newIndex, item);
+        }
+
+        private static void SortConfiguration(ref List<string> list, string parameter)
+        {
+            if (configurations.Contains(configurations.FirstOrDefault(value => value.Contains(parameter))))
+            {
+                list.Add(configurations[configurations.IndexOf(configurations.FirstOrDefault(value => value.Contains(parameter)))]);
+            }
+        }
+        public static List<string> GetConfigurations() //TODO: think about much more simple sorting method.
+        {
+            List<string> tempList = new List<string>();
+            SortConfiguration(ref tempList, "senderEmail");
+            SortConfiguration(ref tempList, "senderUsername");
+            SortConfiguration(ref tempList, "senderPassword");
+            SortConfiguration(ref tempList, "senderName");
+            SortConfiguration(ref tempList, "emailRecievers");
+            SortConfiguration(ref tempList, "messageSubject");
+            SortConfiguration(ref tempList, "htmlPath");
+            SortConfiguration(ref tempList, "xlsPath");
+            SortConfiguration(ref tempList, "birthdayColumnNumber");
+            SortConfiguration(ref tempList, "employeeNameColumnNumber");
+            SortConfiguration(ref tempList, "serverAddress");
+            SortConfiguration(ref tempList, "serverPort");
+            SortConfiguration(ref tempList, "fiveDaysMode");
+            SortConfiguration(ref tempList, "logRecievers");
+            /*
+            if (configurations.Contains(configurations.FirstOrDefault(value => value.Contains("senderEmail"))))
+            {
+                tempList.Add(configurations[configurations.IndexOf(configurations.FirstOrDefault(value => value.Contains("senderEmail")))]);
+            }
+            if (configurations.Contains(configurations.FirstOrDefault(value => value.Contains("senderUsername"))))
+            {
+                tempList.Add(configurations[configurations.IndexOf(configurations.FirstOrDefault(value => value.Contains("senderUsername")))]);
+            }
+            if (configurations.Contains(configurations.FirstOrDefault(value => value.Contains("senderPassword"))))
+            {
+                tempList.Add(configurations[configurations.IndexOf(configurations.FirstOrDefault(value => value.Contains("senderPassword")))]);
+            }
+            if (configurations.Contains(configurations.FirstOrDefault(value => value.Contains("senderName"))))
+            {
+                tempList.Add(configurations[configurations.IndexOf(configurations.FirstOrDefault(value => value.Contains("senderName")))]);
+            }
+            if (configurations.Contains(configurations.FirstOrDefault(value => value.Contains("emailRecievers"))))
+            {
+                tempList.Add(configurations[configurations.IndexOf(configurations.FirstOrDefault(value => value.Contains("emailRecievers")))]);
+            }
+            if (configurations.Contains(configurations.FirstOrDefault(value => value.Contains("messageSubject"))))
+            {
+                tempList.Add(configurations[configurations.IndexOf(configurations.FirstOrDefault(value => value.Contains("messageSubject")))]);
+            }
+            if (configurations.Contains(configurations.FirstOrDefault(value => value.Contains("htmlPath"))))
+            {
+                tempList.Add(configurations[configurations.IndexOf(configurations.FirstOrDefault(value => value.Contains("htmlPath")))]);
+            }
+            if (configurations.Contains(configurations.FirstOrDefault(value => value.Contains("xlsPath"))))
+            {
+                tempList.Add(configurations[configurations.IndexOf(configurations.FirstOrDefault(value => value.Contains("xlsPath")))]);
+            }
+            if (configurations.Contains(configurations.FirstOrDefault(value => value.Contains("birthdayColumnNumber"))))
+            {
+                tempList.Add(configurations[configurations.IndexOf(configurations.FirstOrDefault(value => value.Contains("birthdayColumnNumber")))]);
+            }
+            if (configurations.Contains(configurations.FirstOrDefault(value => value.Contains("employeeNameColumnNumber"))))
+            {
+                tempList.Add(configurations[configurations.IndexOf(configurations.FirstOrDefault(value => value.Contains("employeeNameColumnNumber")))]);
+            }
+            if (configurations.Contains(configurations.FirstOrDefault(value => value.Contains("serverAddress"))))
+            {
+                tempList.Add(configurations[configurations.IndexOf(configurations.FirstOrDefault(value => value.Contains("serverAddress")))]);
+            }
+            if (configurations.Contains(configurations.FirstOrDefault(value => value.Contains("serverPort"))))
+            {
+                tempList.Add(configurations[configurations.IndexOf(configurations.FirstOrDefault(value => value.Contains("serverPort")))]);
+            }
+            if (configurations.Contains(configurations.FirstOrDefault(value => value.Contains("fiveDaysMode"))))
+            {
+                tempList.Add(configurations[configurations.IndexOf(configurations.FirstOrDefault(value => value.Contains("fiveDaysMode")))]);
+            }
+            if (configurations.Contains(configurations.FirstOrDefault(value => value.Contains("logRecievers"))))
+            {
+                tempList.Add(configurations[configurations.IndexOf(configurations.FirstOrDefault(value => value.Contains("logRecievers")))]);
+            }*/
+            configurations = new List<string>(tempList);
             return configurations;
         }
-        public static void SetConfigurations(List<string> list)
+        public static void SetConfigurations(List<string> configList)
         {
-            configurations = list;
+            configurations = configList;
         }
-        public static void SetConfigurations(string entry)
-        {
-            configurations.Add(entry);
+
+        public static void ChangeConfigurations(string parameter, string value)
+        {            
+            if (configurations.Contains(configurations.FirstOrDefault(item => item.Contains(parameter))))
+            {
+                configurations.Remove(configurations.FirstOrDefault(item => item.Contains(parameter)));
+                configurations.Add(parameter + "=" + value);
+                Configs.AddLogsCollected($"Config changed: " + parameter + "=" + value);
+            }
+            else
+            {
+                configurations.Add(parameter + "=" + value);
+                Configs.AddLogsCollected($"Config added: " + parameter + "=" + value);
+            }
         }
 
         public static string GetHtmlPath()
@@ -222,9 +326,13 @@ namespace MailSender
         {
             return logRecievers;
         }
-        public static void SetLogRecievers(string reciever)
+        public static void SetLogRecievers(List<string> recievers)
         {
-            logRecievers.Add(reciever);
-        }      
+            logRecievers.Clear();
+            foreach (var reciever in recievers)
+            {
+                logRecievers.Add(reciever);
+            }
+        }
     }
 }
