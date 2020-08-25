@@ -162,9 +162,31 @@ namespace MailSender
             list.Insert(newIndex, item);
         }
 
-        public static List<string> GetConfigurations() //TODO: sort
+        private static void SortConfiguration(ref List<string> list, string parameter)
+        {
+            if (configurations.Contains(configurations.FirstOrDefault(value => value.Contains(parameter))))
+            {
+                list.Add(configurations[configurations.IndexOf(configurations.FirstOrDefault(value => value.Contains(parameter)))]);
+            }
+        }
+        public static List<string> GetConfigurations() //TODO: think about much more simple sorting method.
         {
             List<string> tempList = new List<string>();
+            SortConfiguration(ref tempList, "senderEmail");
+            SortConfiguration(ref tempList, "senderUsername");
+            SortConfiguration(ref tempList, "senderPassword");
+            SortConfiguration(ref tempList, "senderName");
+            SortConfiguration(ref tempList, "emailRecievers");
+            SortConfiguration(ref tempList, "messageSubject");
+            SortConfiguration(ref tempList, "htmlPath");
+            SortConfiguration(ref tempList, "xlsPath");
+            SortConfiguration(ref tempList, "birthdayColumnNumber");
+            SortConfiguration(ref tempList, "employeeNameColumnNumber");
+            SortConfiguration(ref tempList, "serverAddress");
+            SortConfiguration(ref tempList, "serverPort");
+            SortConfiguration(ref tempList, "fiveDaysMode");
+            SortConfiguration(ref tempList, "logRecievers");
+            /*
             if (configurations.Contains(configurations.FirstOrDefault(value => value.Contains("senderEmail"))))
             {
                 tempList.Add(configurations[configurations.IndexOf(configurations.FirstOrDefault(value => value.Contains("senderEmail")))]);
@@ -220,7 +242,7 @@ namespace MailSender
             if (configurations.Contains(configurations.FirstOrDefault(value => value.Contains("logRecievers"))))
             {
                 tempList.Add(configurations[configurations.IndexOf(configurations.FirstOrDefault(value => value.Contains("logRecievers")))]);
-            }
+            }*/
             configurations = new List<string>(tempList);
             return configurations;
         }
@@ -228,15 +250,19 @@ namespace MailSender
         {
             configurations = configList;
         }
-        public static void ChangeConfigurations(string entry)
-        {
-            string entryParameter = entry.Substring(0, entry.IndexOf('='));
-            if (configurations.Contains(configurations.FirstOrDefault(value => value.Contains(entryParameter)))) {
-                configurations.Remove(configurations.FirstOrDefault(value => value.Contains(entryParameter)));
-                configurations.Add(entry);
-            } else
+
+        public static void ChangeConfigurations(string parameter, string value)
+        {            
+            if (configurations.Contains(configurations.FirstOrDefault(item => item.Contains(parameter))))
             {
-                configurations.Add(entry);
+                configurations.Remove(configurations.FirstOrDefault(item => item.Contains(parameter)));
+                configurations.Add(parameter + "=" + value);
+                Configs.AddLogsCollected($"Config changed: " + parameter + "=" + value);
+            }
+            else
+            {
+                configurations.Add(parameter + "=" + value);
+                Configs.AddLogsCollected($"Config added: " + parameter + "=" + value);
             }
         }
 
@@ -307,6 +333,6 @@ namespace MailSender
             {
                 logRecievers.Add(reciever);
             }
-        }      
+        }
     }
 }

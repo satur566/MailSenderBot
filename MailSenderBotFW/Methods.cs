@@ -13,6 +13,8 @@ namespace MailSender
     {
         public static void SendMail()
         {
+            ReadXlsFile(Configs.GetXlsPath(), Configs.GetFiveDayMode(), Configs.GetBirthdayColumnNumber(), Configs.GetEmployeeNameColumnNumber());
+            ReadHtmlFile(Configs.GetHtmlPath(), Employees.GetCongratulationsString());
             if (Employees.GetWhosBirthdayIs().Count.Equals(0) || Configs.GetFiveDayMode() && (DateTime.Now.DayOfWeek == DayOfWeek.Sunday || DateTime.Now.DayOfWeek == DayOfWeek.Saturday))
             {
                 Configs.AddLogsCollected($"Sending message: CANCELLED.");
@@ -27,11 +29,18 @@ namespace MailSender
             }
             else
             {
-                foreach (var reciever in Configs.GetEmailrecievers())
+                if (Configs.GetEmailrecievers().Count.Equals(0))
                 {
-                    SendMessage(reciever, Configs.GetMessageSubject(), Configs.GetMessageText());
+                    Configs.AddLogsCollected($"Sending message: CANCELLED.");
+                    Configs.AddLogsCollected($"Reason: recievers count equals 0.");
                 }
-                Configs.AddLogsCollected(LogConclusionMaker());
+                else
+                {
+                    foreach (var reciever in Configs.GetEmailrecievers())
+                    {
+                        SendMessage(reciever, Configs.GetMessageSubject(), Configs.GetMessageText());
+                    }
+                }
             }
             SendLogs();
         }
@@ -57,11 +66,18 @@ namespace MailSender
                 if (!subject.Contains("log from"))
                 {
                     Configs.AddLogsCollected($"Sending message to {reciever}: SUCCESS.");
+                    Configs.AddLogsCollected(LogConclusionMaker(reciever));
                 }
             }
             catch
             {
-                Configs.AddLogsCollected($"Sending message to {reciever}: FAILURE.");
+                if (!subject.Contains("log from"))
+                {
+                    Configs.AddLogsCollected($"Sending message to {reciever}: FAILURE.");
+                } else
+                {
+                    Configs.AddLogsCollected($"Sending log to {reciever}: FAILURE.");
+                }
             }
         }
 
@@ -90,23 +106,18 @@ namespace MailSender
             }
         }
 
-        private static string LogConclusionMaker()
+        private static string LogConclusionMaker(string reciever)
         {
             string employees = "";
-            string recievers = "";
             foreach (var item in Employees.GetWhosBirthdayIs())
             {
                 employees = String.Concat(employees, "\t" + item.Trim() + "\n");
 
             }
-            foreach (var reciever in Configs.GetEmailrecievers())
-            {
-                recievers = String.Concat(recievers, "\t" + reciever + "\n");
-            }
             string result = $"\nConclusion:" +
                 $"\nSender mail: {Configs.GetSenderEmail()}" +
                 $"\nSender name: {Configs.GetSenderName()}" +
-                $"\nRecievers e-mails:\n{recievers}" +
+                $"\nReciever e-mail:{reciever}" +
                 $"\nBirthday givers:\n{employees}";
             return result;
         }
@@ -187,7 +198,7 @@ namespace MailSender
             }
         }
 
-        public static void LoadConfig() //TODO: Is all config loaded?
+        public static void LoadConfig()
         {
             Configs.SetConfigurations(new List<string>(File.ReadAllLines(Configs.GetConfigPath())));
             foreach (var item in Configs.GetConfigurations())
@@ -209,7 +220,7 @@ namespace MailSender
                         Configs.SetSenderName(value);
                         break;
                     case "emailRecievers":
-                        Configs.SetEmailRecievers(new List<string>(value.Split(',')));                        
+                        Configs.SetEmailRecievers(new List<string>(value.Split(',')));
                         break;
                     case "messageSubject":
                         Configs.SetMessageSubject(value);
@@ -242,9 +253,6 @@ namespace MailSender
                         break;
                 }
             }
-            Configs.SetMessageText(File.ReadAllText(Configs.GetHtmlPath()));
-            ReadXlsFile(Configs.GetXlsPath(), Configs.GetFiveDayMode(), Configs.GetBirthdayColumnNumber(), Configs.GetEmployeeNameColumnNumber());
-            ReadHtmlFile(Configs.GetHtmlPath(), Employees.GetCongratulationsString());
         }
 
         public static void EditConfig(string parameter, string value) //TODO: make Config as array with fixed config fields. In creation of file fill it with parameters with null values. Edit config shoud searth and replace line.
@@ -306,8 +314,7 @@ namespace MailSender
                 default:
                     break;
             }
-            Configs.ChangeConfigurations(parameter + "=" + value);
-            Configs.AddLogsCollected($"Config: " + parameter + "=" + value);
+            Configs.ChangeConfigurations(parameter, value);            
         }
 
         public static void SaveConfig()
@@ -324,7 +331,7 @@ namespace MailSender
             }
             LoadConfig();
         }
-                
+
         public static string EncryptString(string key, string plainText)
         {
             byte[] iv = new byte[16];
