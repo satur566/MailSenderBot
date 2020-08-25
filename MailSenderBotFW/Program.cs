@@ -22,8 +22,9 @@ namespace MailSender
                             case "-help":
                                 Console.WriteLine($"\n-silent\t\t\t\tLaunch program without any GUI and output, excluding log.\n" +
                                     $"-showconfig\t\t\tShow current configuration stored in config.cfg file.\n" +
-                                    $"-editconfig\t\t\tEdit current configuration stored in config.cfg file. \n" +
                                     $"-help\t\t\t\tDisplays help.\n" +
+                                    $"-editconfig\t\t\tEdit current configuration stored in config.cfg file. " +
+                                    $"\n\t\t\t\tUsage: -editconfig parameter=\"value\" \n" +                                    
                                     $"\nList of parameters available:\n\n" +
                                     $"senderEmail\t\t\tE-mail address of sender.\n" +
                                     $"senderUsername\t\t\tE-mail server authorisation username.\n" +

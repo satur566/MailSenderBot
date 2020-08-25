@@ -25,7 +25,8 @@ namespace MailSender
         private static string employeeNameColumnNumber;
         private static readonly List<string> logRecievers = new List<string>();
         private static string logsCollected = "";
-
+        //TODO: switch html samples like: every day, every week, every month, every time of the year.
+        //TODO: switch should be random but never same in a row twice and ascendingly ordered by name of html file.
 
         public static string GetSenderEmail()
         {
@@ -178,7 +179,7 @@ namespace MailSender
             SortConfiguration(ref tempList, "senderName");
             SortConfiguration(ref tempList, "emailRecievers");
             SortConfiguration(ref tempList, "messageSubject");
-            SortConfiguration(ref tempList, "htmlPath");
+            SortConfiguration(ref tempList, "htmlPath"); //TODO: if folder - check available file inside, i.e contains listofusers and ends with .html
             SortConfiguration(ref tempList, "xlsPath");
             SortConfiguration(ref tempList, "birthdayColumnNumber");
             SortConfiguration(ref tempList, "employeeNameColumnNumber");
