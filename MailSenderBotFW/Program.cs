@@ -46,11 +46,11 @@ namespace MailSender
                                     $"\n\t\t\t\twill be congratulated on Monday.\n" +
                                     $"logRecievers\t\t\tList of logs recievers comma separated.\n" +
                                     $"\nUsage exaple:\n\n" +
-                                    $"-editconfig senderEmail=info@mail.com senderPassword=Qwerty123 htmlPath=C:\\temp\\file.html emailRecievers=i.ivanov@mail.com, p.petrov@mail.com\n");
-                                Console.ReadKey();
+                                    $"-editconfig senderEmail=info@mail.com senderPassword=Qwerty123 htmlPath=C:\\temp\\file.html " +
+                                    $"\nemailRecievers=i.ivanov@mail.com, p.petrov@mail.com\n");
                                 break;
                             case "-showconfig":
-                                foreach (var line in File.ReadAllLines(Configs.GetConfigPath()))
+                                foreach (var line in File.ReadAllLines(Configs.ConfigsPath))
                                 {
                                     Console.WriteLine(line);
                                 }
