@@ -150,7 +150,7 @@ namespace MailSender
                 path = Configs.TempPath + fileName;
                 isTempCopied = true;
             }
-            catch
+            catch 
             {
                 Configs.AddLogsCollected("Unable to open temporary copy of existing .xls file.");
             }
