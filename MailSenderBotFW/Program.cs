@@ -22,8 +22,9 @@ namespace MailSender
                             case "-help":
                                 Console.WriteLine($"\n-silent\t\t\t\tLaunch program without any GUI and output, excluding log.\n" +
                                     $"-showconfig\t\t\tShow current configuration stored in config.cfg file.\n" +
-                                    $"-editconfig\t\t\tEdit current configuration stored in config.cfg file. \n" +
                                     $"-help\t\t\t\tDisplays help.\n" +
+                                    $"-editconfig\t\t\tEdit current configuration stored in config.cfg file. " +
+                                    $"\n\t\t\t\tUsage: -editconfig parameter=\"value\" \n" +                                    
                                     $"\nList of parameters available:\n\n" +
                                     $"senderEmail\t\t\tE-mail address of sender.\n" +
                                     $"senderUsername\t\t\tE-mail server authorisation username.\n" +
@@ -45,11 +46,11 @@ namespace MailSender
                                     $"\n\t\t\t\twill be congratulated on Monday.\n" +
                                     $"logRecievers\t\t\tList of logs recievers comma separated.\n" +
                                     $"\nUsage exaple:\n\n" +
-                                    $"-editconfig senderEmail=info@mail.com senderPassword=Qwerty123 htmlPath=C:\\temp\\file.html emailRecievers=i.ivanov@mail.com, p.petrov@mail.com\n");
-                                Console.ReadKey();
+                                    $"-editconfig senderEmail=info@mail.com senderPassword=Qwerty123 htmlPath=C:\\temp\\file.html " +
+                                    $"\nemailRecievers=\"i.ivanov@mail.com, p.petrov@mail.com\"\n");
                                 break;
                             case "-showconfig":
-                                foreach (var line in File.ReadAllLines(Configs.GetConfigPath()))
+                                foreach (var line in File.ReadAllLines(Configs.ConfigsPath))
                                 {
                                     Console.WriteLine(line);
                                 }
@@ -104,7 +105,7 @@ namespace MailSender
             }
             else
             {
-                //TODO: launch WPF app.
+                //TODO: launch desktop app.
             }
         }
     }

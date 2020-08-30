@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Security.Policy;
 
 namespace MailSender
 {
@@ -7,23 +8,28 @@ namespace MailSender
         private static readonly List<string> whosBirthdayIs = new List<string>();
         private static string congratulationsString;
 
-        public static List<string> GetWhosBirthdayIs()
+        public static List<string> WhosBirthdayIs
         {
-            whosBirthdayIs.Sort();
-            return whosBirthdayIs;
+            get
+            {
+                whosBirthdayIs.Sort();
+                return whosBirthdayIs;
+            }
         }
-        public static void SetWhosBirthdayIs(string entry)
+        public static void AddBirthdaygiver(string entry)
         {
             whosBirthdayIs.Add(entry);
         }
-
-        public static string GetCongratulationsString()
+        public static string CongratulationsList
         {
-            foreach (var item in whosBirthdayIs)
+            get
             {
-                congratulationsString += item.Trim() + "<br>";
+                foreach (var item in whosBirthdayIs)
+                {
+                    congratulationsString += item.Trim() + "<br>";
+                }
+                return congratulationsString;
             }
-            return congratulationsString;
         }
     }
 }
