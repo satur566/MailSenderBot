@@ -6,25 +6,13 @@ namespace MailSender
 {
     class Program
     {
-        static void Main(string[] args)
+        static private void ShowHelp()
         {
-            Configs.AddLogsCollected($"\n\n\nCurrent user: {Environment.UserName}");
-            if (args.Length > 0)
-            {
-                for (int i = 0; i < args.Length; i++)
-                {
-                    if (args[i].StartsWith("-"))
-                    {
-                        switch (args[i].ToLower())
-                        {
-                            case "-silent":
-                                break;
-                            case "-help":
-                                Console.WriteLine($"\n-silent\t\t\t\tLaunch program without any GUI and output, excluding log.\n" +
+            Console.WriteLine($"\n-silent\t\t\t\tLaunch program without any GUI and output, excluding log.\n" +
                                     $"-showconfig\t\t\tShow current configuration stored in config.cfg file.\n" +
                                     $"-help\t\t\t\tDisplays help.\n" +
                                     $"-editconfig\t\t\tEdit current configuration stored in config.cfg file. " +
-                                    $"\n\t\t\t\tUsage: -editconfig parameter=\"value\" \n" +                                    
+                                    $"\n\t\t\t\tUsage: -editconfig parameter=\"value\" \n" +
                                     $"\nList of parameters available:\n\n" +
                                     $"senderEmail\t\t\tE-mail address of sender.\n" +
                                     $"senderUsername\t\t\tE-mail server authorisation username.\n" +
@@ -48,8 +36,27 @@ namespace MailSender
                                     $"\nUsage exaple:\n\n" +
                                     $"-editconfig senderEmail=info@mail.com senderPassword=Qwerty123 htmlPath=C:\\temp\\file.html " +
                                     $"\nemailRecievers=\"i.ivanov@mail.com, p.petrov@mail.com\"\n");
+        }
+
+        static void Main(string[] args) //Learn how to use catch (Exception e) and throw new exception. AND USE IT!
+        {
+            Logs.AddLogsCollected($"\n\n\nCurrent user: {Environment.UserName}");
+            if (args.Length > 0)
+            {
+                for (int i = 0; i < args.Length; i++)
+                {
+                    if (args[i].StartsWith("-"))
+                    {
+                        switch (args[i].ToLower())
+                        {
+                            case "-run":
+                            //TODO: greeting string, show config and ask if everything is ok
+                            case "-silent":
                                 break;
-                            case "-showconfig":
+                            case "-help":
+                                ShowHelp();
+                                break;
+                            case "-showconfig": //TODO: show config.cfg destination.
                                 foreach (var line in File.ReadAllLines(Configs.ConfigsPath))
                                 {
                                     Console.WriteLine(line);
@@ -60,7 +67,7 @@ namespace MailSender
                                 {
                                     try
                                     {
-                                        Methods.LoadConfig();
+                                        Configs.LoadConfig();
                                     }
                                     catch
                                     {
@@ -72,7 +79,7 @@ namespace MailSender
                                         {
                                             string parameter = args[j].Substring(0, args[j].IndexOf('='));
                                             string value = args[j].Substring(args[j].IndexOf('=') + 1, args[j].Length - args[j].IndexOf('=') - 1);
-                                            Methods.EditConfig(parameter, value);
+                                            Configs.EditConfig(parameter, value);
                                         }
                                         catch
                                         {
@@ -81,7 +88,7 @@ namespace MailSender
                                         i++;
                                     }
                                 }
-                                Methods.SaveConfig();
+                                Configs.SaveConfig();
                                 break;
                             default:
                                 Console.WriteLine("Unknown parameter.");
@@ -93,9 +100,10 @@ namespace MailSender
                 {
                     try
                     {
-                        Configs.AddLogsCollected("Working mode: silent");
-                        Methods.LoadConfig();
-                        Methods.SendMail();
+                        Logs.AddLogsCollected("Working mode: silent");
+                        Configs.LoadConfig();
+                        Sending.SendMail();
+                        Logs.SendLogs();
                     }
                     catch
                     {
@@ -105,7 +113,7 @@ namespace MailSender
             }
             else
             {
-                //TODO: launch desktop app.
+                ShowHelp();
             }
         }
     }

@@ -68,7 +68,7 @@ namespace MailSender
                     }
                     catch
                     {
-                        AddLogsCollected("Unable to create logs directory.");
+                        Logs.AddLogsCollected("Unable to create logs directory.");
                     }
 
                 }
@@ -92,7 +92,7 @@ namespace MailSender
                     }
                     catch
                     {
-                        AddLogsCollected("Unable to create config directory.");
+                        Logs.AddLogsCollected("Unable to create config directory.");
                     }
 
                 }
@@ -113,7 +113,7 @@ namespace MailSender
                     }
                     catch
                     {
-                        AddLogsCollected("Unable to create temp directory");
+                        Logs.AddLogsCollected("Unable to create temp directory");
                     }
 
                 }
@@ -157,18 +157,18 @@ namespace MailSender
             }
         }
 
-        public static void ChangeParameter(string parameter, string value)
+        private static void ChangeParameter(string parameter, string value)
         {            
             if (parametersList.Contains(parametersList.FirstOrDefault(item => item.Contains(parameter))))
             {
                 parametersList.Remove(parametersList.FirstOrDefault(item => item.Contains(parameter)));
                 parametersList.Add(parameter + "=" + value);
-                Configs.AddLogsCollected($"Config changed: " + parameter + "=" + value);
+                Logs.AddLogsCollected($"Config changed: " + parameter + "=" + value);
             }
             else
             {
                 parametersList.Add(parameter + "=" + value);
-                Configs.AddLogsCollected($"Config added: " + parameter + "=" + value);
+                Logs.AddLogsCollected($"Config added: " + parameter + "=" + value);
             }
         }
 
@@ -179,16 +179,7 @@ namespace MailSender
         public static bool FiveDayMode { get; set; }
 
         public static string BirthdayColumnNumber { get; set; }
-        public static string EmployeeNameColumnNumber { get; set; }
-
-        public static string LogsCollected { get; private set; } = "";
-
-        public static void AddLogsCollected(string log)
-        {
-            log = $"\n{DateTime.Now} - " + log;
-            File.AppendAllText(Configs.LogsPath, log);
-            LogsCollected = String.Concat(LogsCollected, log.Replace("\t", "&#9;").Replace("\n", "<br>"));
-        }
+        public static string EmployeeNameColumnNumber { get; set; }             
 
         public static List<string> LogsRecievers
         {
@@ -203,6 +194,138 @@ namespace MailSender
                 {
                     logRecievers.Add(reciever);
                 }
+            }
+        }
+
+        public static void LoadConfig()
+        {
+            ParametersList = new List<string>(File.ReadAllLines(ConfigsPath));
+            foreach (var item in ParametersList)
+            {
+                string parameter = item.Substring(0, item.IndexOf('='));
+                string value = item.Substring(item.IndexOf('=') + 1, item.Length - item.IndexOf('=') - 1);
+                switch (parameter)
+                {
+                    case "senderEmail":
+                        SenderEmail = value;
+                        break;
+                    case "senderUsername":
+                        SenderUsername = value;
+                        break;
+                    case "senderPassword":
+                        SenderPassword = value;
+                        break;
+                    case "senderName":
+                        SenderName = value;
+                        break;
+                    case "emailRecievers":
+                        EmailRecievers = new List<string>(value.Split(','));
+                        break;
+                    case "messageSubject":
+                        MessageSubject = value;
+                        break;
+                    case "htmlPath":
+                        HtmlFilePath = value;
+                        break;
+                    case "xlsPath":
+                        XlsFilePath = value;
+                        break;
+                    case "birthdayColumnNumber":
+                        BirthdayColumnNumber = value;
+                        break;
+                    case "employeeNameColumnNumber":
+                        EmployeeNameColumnNumber = value;
+                        break;
+                    case "serverAddress":
+                        ServerAddress = value;
+                        break;
+                    case "serverPort":
+                        ServerPort = Convert.ToInt32(value);
+                        break;
+                    case "fiveDaysMode":
+                        if (value.ToLower() == "yes" ||
+                        value.ToLower() == "y" ||
+                        value.ToLower() == "true")
+                        {
+                            FiveDayMode = true;
+                        }
+                        else
+                        {
+                            FiveDayMode = false;
+                        }
+                        break;
+                    case "logRecievers":
+                        LogsRecievers = new List<string>(value.Split(','));
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
+        public static void EditConfig(string parameter, string value)
+        {
+            string fileType;
+            switch (parameter)
+            {
+                case "birthdayColumnNumber":
+                case "employeeNameColumnNumber":
+                    if (!int.TryParse(value, out _))
+                    {
+                        value = "";
+                    }
+                    break;
+                case "serverPort":
+                    if (string.IsNullOrEmpty(value) || string.IsNullOrWhiteSpace(value))
+                    {
+                        value = "25";
+                    }
+                    else if (!int.TryParse(value, out _))
+                    {
+                        value = "";
+                    }
+                    break;
+                case "htmlPath":
+                    fileType = value.Substring(value.LastIndexOf('.') + 1, value.Length - value.LastIndexOf('.') - 1);
+                    if (File.Exists(value) && fileType.ToLower().Equals("html"))
+                    {
+                        if (!File.ReadAllText(value).Contains("%LIST_OF_EMPLOYEES%"))
+                        {
+                            value = "";
+                        }
+                    }
+                    else
+                    {
+                        value = "";
+                    }
+                    break;
+                case "xlsPath":
+                    fileType = value.Substring(value.LastIndexOf('.') + 1, value.Length - value.LastIndexOf('.') - 1);
+                    if (!File.Exists(value) || !fileType.ToLower().Equals("xls"))
+                    {
+                        value = "";
+                    }
+                    break;
+                case "senderPassword":
+                    value = Encryptor.EncryptString("b14ca5898a4e4133bbce2mbd02082020", value);
+                    break;
+                default:
+                    break;
+            }
+            ChangeParameter(parameter, value);
+        }
+
+        public static void SaveConfig()
+        {
+            try
+            {
+                File.WriteAllText(ConfigsPath, string.Empty);
+                File.WriteAllLines(ConfigsPath, ParametersList);
+                Logs.AddLogsCollected($"Config save: SUCCESS.");
+            }
+            catch
+            {
+                Logs.AddLogsCollected($"Config save: FAILURE.");
             }
         }
     }

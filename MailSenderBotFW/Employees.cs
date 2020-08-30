@@ -15,6 +15,14 @@ namespace MailSender
                 whosBirthdayIs.Sort();
                 return whosBirthdayIs;
             }
+            set
+            {
+                whosBirthdayIs.Clear();
+                foreach (string employee in value)
+                {
+                    whosBirthdayIs.Add(employee);
+                }
+            }
         }
         public static void AddBirthdaygiver(string entry)
         {

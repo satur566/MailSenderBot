@@ -62,9 +62,12 @@
   <ItemGroup>
     <Compile Include="Configs.cs" />
     <Compile Include="Employees.cs" />
-    <Compile Include="Methods.cs" />
+    <Compile Include="Encryptor.cs" />
+    <Compile Include="FileReader.cs" />
+    <Compile Include="Logs.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Sending.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
