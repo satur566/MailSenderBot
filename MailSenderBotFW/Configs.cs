@@ -14,6 +14,9 @@ namespace MailSender
         private static readonly List<string> logRecievers = new List<string>();
         private static readonly string workingDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
 
+        //TODO: make replaceable string %CONGRATULATION_TEXT% similar as %LIST_OF_USERS% and reads that text from txt file.
+        //TODO: make property of congratulationText path
+         
         //TODO: switch html samples like: every day, every week, every month, every time of the year.
         //TODO: switch should be random but never same in a row twice and ascendingly ordered by name of html file.
 
