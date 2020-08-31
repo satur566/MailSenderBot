@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Mail;
 using System.Net.Mime;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace MailSender
 {
@@ -13,8 +11,12 @@ namespace MailSender
     {
         public static void SendMail()
         {
+            Configs.HtmlFilesList = FileReader.CollectHtmlFiles(Configs.HtmlFolderPath);
             Employees.WhosBirthdayIs = FileReader.ReadXlsFile(Configs.XlsFilePath, Configs.FiveDayMode, Configs.BirthdayColumnNumber, Configs.EmployeeNameColumnNumber);
-            Configs.MessageText = FileReader.ReadHtmlFile(Configs.HtmlFilePath, Employees.CongratulationsList);
+            Random random = new Random();
+            int selectedIndex = random.Next(0, Configs.HtmlFilesList.Count);
+            Configs.MessageText = FileReader.ReadHtmlFile(Configs.HtmlFilesList[selectedIndex], Employees.CongratulationsList);
+            Logs.AddLogsCollected($"Selected {Configs.HtmlFilesList[selectedIndex]} sample of html body.");            
             if (Employees.WhosBirthdayIs.Count.Equals(0) || Configs.FiveDayMode && (DateTime.Now.DayOfWeek == DayOfWeek.Sunday || DateTime.Now.DayOfWeek == DayOfWeek.Saturday))
             {
                 Logs.AddLogsCollected($"Sending message: CANCELLED.");

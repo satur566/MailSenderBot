@@ -1,14 +1,15 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace MailSender
 {
     class Program
     {
-        static private void ShowHelp()
+        private static void ShowHelp()
         {
-            Console.WriteLine($"\n-silent\t\t\t\tLaunch program without any GUI and output, excluding log.\n" +
+            Console.WriteLine($"\n-silent\t\t\t\tLaunch program without any GUI and output, excluding log.\n" + //TODO: htmlFolderPath
                                     $"-showconfig\t\t\tShow current configuration stored in config.cfg file.\n" +
                                     $"-help\t\t\t\tDisplays help.\n" +
                                     $"-editconfig\t\t\tEdit current configuration stored in config.cfg file. " +
@@ -38,7 +39,15 @@ namespace MailSender
                                     $"\nemailRecievers=\"i.ivanov@mail.com, p.petrov@mail.com\"\n");
         }
 
-        static void Main(string[] args) //Learn how to use catch (Exception e) and throw new exception. AND USE IT!
+        private static void ShowConfig() //TODO: if empty - output "unconfigured"
+        {
+            foreach (var line in File.ReadAllLines(Configs.ConfigsPath))
+            {
+                Console.WriteLine(line);
+            }
+        }
+
+        static void Main(string[] args) //TODO: Learn how to use catch (Exception e) and throw new exception. AND USE IT!
         {
             Logs.AddLogsCollected($"\n\n\nCurrent user: {Environment.UserName}");
             if (args.Length > 0)
@@ -50,17 +59,14 @@ namespace MailSender
                         switch (args[i].ToLower())
                         {
                             case "-run":
-                            //TODO: greeting string, show config and ask if everything is ok
+                                break;
                             case "-silent":
                                 break;
                             case "-help":
                                 ShowHelp();
                                 break;
                             case "-showconfig": //TODO: show config.cfg destination.
-                                foreach (var line in File.ReadAllLines(Configs.ConfigsPath))
-                                {
-                                    Console.WriteLine(line);
-                                }
+                                ShowConfig();
                                 break;
                             case "-editconfig":
                                 if (i + 1 <= args.Length)
@@ -96,12 +102,52 @@ namespace MailSender
                         }
                     }
                 }
-                if (args.Contains("-silent"))
+                if(args.Contains("-run"))
+                {
+                    //ADDLOGS COLLECTED!
+                    //TODO: greeting string, show config and ask if everything is ok
+                    Console.WriteLine($"Hello {Environment.UserName}!\n\n" +
+                        $"I'm BirthdayMailSender!\n" +
+                        $"There are arguments I can be run with:\n" +
+                        $"-silent\t\t\tSend mail without any output using current configuration.\n" +
+                        $"-help\t\t\tDisplay detailed instruction about every argument and show some usage examples.\n" +
+                        $"-showconfig\t\tDisplay current configuration parameters and values, also destination of config.cfg file.\n" +
+                        $"-editconig\t\tAllow user to change some parameter values.\n\n");
+                    Console.WriteLine($"Here is my current configuration:\n");
+                    ShowConfig();
+                    Console.Write("Do you want to send message with current configuration(y/n)? ");
+                    switch (Console.ReadLine().ToLower())
+                    {
+                        case "y":
+                        case "yes":
+                            try
+                            {
+                                Console.WriteLine("Prepare to sending...");
+                                Configs.LoadConfig();
+                                Sending.SendMail();
+                                Logs.SendLogs();
+                                Console.WriteLine("Sending succesful!");
+                            }
+                            catch
+                            {
+                                Console.WriteLine("Unable to send message. Check configuration.");
+                            }
+                            break;
+                        case "n":
+                        case "no":
+                            Console.WriteLine($"Sending cancelled.");
+                            break;
+                        default:
+                            Console.WriteLine($"It is not look's like \"yes\". Sending cancelled.");
+                            break;
+                    }
+                }
+                else if (args.Contains("-silent"))
                 {
                     try
                     {
                         Logs.AddLogsCollected("Working mode: silent");
-                        Configs.LoadConfig();
+                        Configs.LoadConfig();                        
                         Sending.SendMail();
                         Logs.SendLogs();
                     }

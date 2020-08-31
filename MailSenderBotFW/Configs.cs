@@ -3,16 +3,16 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Security.Policy;
 
 namespace MailSender
 {
     static class Configs
     {
+        private static List<string> htmlFilesList = new List<string>();
         private static readonly List<string> emailRecievers = new List<string>();
         private static List<string> parametersList = new List<string>();
         private static readonly List<string> logRecievers = new List<string>();
-        private static readonly string workingDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+        private static readonly string workingDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);        
 
         //TODO: make replaceable string %CONGRATULATION_TEXT% similar as %LIST_OF_USERS% and reads that text from txt file.
         //TODO: make property of congratulationText path
@@ -140,7 +140,8 @@ namespace MailSender
                 SortConfiguration(ref tempList, "senderName");
                 SortConfiguration(ref tempList, "emailRecievers");
                 SortConfiguration(ref tempList, "messageSubject");
-                SortConfiguration(ref tempList, "htmlPath"); //TODO: if folder - check available file inside, i.e contains listofusers and ends with .html
+                SortConfiguration(ref tempList, "htmlPath");
+                SortConfiguration(ref tempList, "htmlFolderPath");//TODO: if folder - check available file inside, i.e contains listofusers and ends with .html
                 SortConfiguration(ref tempList, "xlsPath");
                 SortConfiguration(ref tempList, "birthdayColumnNumber");
                 SortConfiguration(ref tempList, "employeeNameColumnNumber");
@@ -173,6 +174,25 @@ namespace MailSender
         }
 
         public static string HtmlFilePath { get; set; }
+
+        public static string HtmlFolderPath { get; set; }
+
+        public static List<string> HtmlFilesList
+        {
+            get
+            {
+                htmlFilesList.Sort();
+                return htmlFilesList;
+            }
+            set
+            {
+                HtmlFilesList.Clear();
+                foreach (string htmlFile in value)
+                {
+                    HtmlFilesList.Add(htmlFile);
+                }
+            }
+        }
 
         public static string XlsFilePath { get; set; }
 
@@ -226,6 +246,9 @@ namespace MailSender
                         break;
                     case "htmlPath":
                         HtmlFilePath = value;
+                        break;
+                    case "htmlFolderPath":
+                        HtmlFolderPath = value;
                         break;
                     case "xlsPath":
                         XlsFilePath = value;

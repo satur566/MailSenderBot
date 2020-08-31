@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MailSender
 {
@@ -25,7 +21,7 @@ namespace MailSender
                 }
                 finally
                 {
-                    AddLogsCollected($"Sending logs: {ifSuccess}.");
+                    AddLogsCollected($"Sending logs to {reciever}: {ifSuccess}.");
                 }
             }
         }

@@ -2,9 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MailSender
 {
@@ -127,8 +124,23 @@ namespace MailSender
             {
                 Logs.AddLogsCollected($"Reading html: FAILURE.");
                 Logs.AddLogsCollected($"Reason: list of employees can't be inserted.");
+                htmlContent = null;
             }
             return htmlContent;
+        }
+
+        public static List<string> CollectHtmlFiles(string path)
+        {
+            List<string> filesList = new List<string>();
+            foreach (var file in Directory.GetFiles(path, "*.html"))
+            {
+                string htmlContent = File.ReadAllText(file);
+                if (htmlContent.Contains("%LIST_OF_EMPLOYEES%"))
+                {
+                    filesList.Add(file);
+                }
+            }
+            return filesList;
         }
     }
 }
