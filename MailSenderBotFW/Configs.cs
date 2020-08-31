@@ -9,11 +9,11 @@ namespace MailSender
 {
     static class Configs
     {
-        private static List<string> emailRecievers = new List<string>();
-        private static List<string> configurations = new List<string>();
-        private static string xlsFilePath;
+        private static readonly List<string> emailRecievers = new List<string>();
+        private static List<string> parametersList = new List<string>();
         private static readonly List<string> logRecievers = new List<string>();
-        private static string logsCollected = "";
+        private static readonly string workingDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+
         //TODO: switch html samples like: every day, every week, every month, every time of the year.
         //TODO: switch should be random but never same in a row twice and ascendingly ordered by name of html file.
 
@@ -53,7 +53,7 @@ namespace MailSender
         {
             get
             {
-                string logsDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location) + "\\logs";
+                string logsDirectory = workingDirectory + "\\logs";
                 string logFile = $"\\{DateTime.Now.Month:D}-{DateTime.Now.Year}.log";
                 if (!File.Exists(logsDirectory + logFile))
                 {
@@ -65,7 +65,7 @@ namespace MailSender
                     }
                     catch
                     {
-                        Console.WriteLine("Cannot create log file in readOnly directory. Press any key to exit");
+                        AddLogsCollected("Unable to create logs directory.");
                     }
 
                 }
@@ -77,7 +77,7 @@ namespace MailSender
         {
             get
             {
-                string configDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location) + "\\etc";
+                string configDirectory = workingDirectory + "\\etc";
                 if (!File.Exists(configDirectory + "\\config.cfg"))
                 {
                     try
@@ -85,12 +85,11 @@ namespace MailSender
                         Directory.CreateDirectory(configDirectory);
                         var file = File.Create(configDirectory + "\\config.cfg");
                         file.Close();
-                        File.WriteAllLines(configDirectory + "\\config.cfg", configurations);
+                        File.WriteAllLines(configDirectory + "\\config.cfg", parametersList);
                     }
                     catch
                     {
-                        Console.WriteLine("Cannot create config file in readOnly directory. Press any key to exit");
-                        Environment.Exit(0);
+                        AddLogsCollected("Unable to create config directory.");
                     }
 
                 }
@@ -98,15 +97,36 @@ namespace MailSender
             }
         }
 
-        private static void SortConfiguration(ref List<string> list, string parameter)
+        public static string TempPath
         {
-            if (configurations.Contains(configurations.FirstOrDefault(value => value.Contains(parameter))))
+            get
             {
-                list.Add(configurations[configurations.IndexOf(configurations.FirstOrDefault(value => value.Contains(parameter)))]);
+                string tempDirectory = workingDirectory + "\\temp";
+                if(!Directory.Exists(tempDirectory))
+                {
+                    try
+                    {
+                        Directory.CreateDirectory(tempDirectory);
+                    }
+                    catch
+                    {
+                        AddLogsCollected("Unable to create temp directory");
+                    }
+
+                }
+                return tempDirectory;
             }
         }
 
-        public static List<string> ConfigurationsList
+        private static void SortConfiguration(ref List<string> list, string parameter)
+        {
+            if (parametersList.Contains(parametersList.FirstOrDefault(value => value.Contains(parameter))))
+            {
+                list.Add(parametersList[parametersList.IndexOf(parametersList.FirstOrDefault(value => value.Contains(parameter)))]);
+            }
+        }
+
+        public static List<string> ParametersList
         {
             get
             {
@@ -125,62 +145,46 @@ namespace MailSender
                 SortConfiguration(ref tempList, "serverPort");
                 SortConfiguration(ref tempList, "fiveDaysMode");
                 SortConfiguration(ref tempList, "logRecievers");
-                configurations = new List<string>(tempList);
-                return configurations;
+                parametersList = new List<string>(tempList);
+                return parametersList;
             }
             set
             {
-                configurations = value;
+                parametersList = value;
             }
         }
 
-        public static void ChangeConfigurations(string parameter, string value)
+        public static void ChangeParameter(string parameter, string value)
         {            
-            if (configurations.Contains(configurations.FirstOrDefault(item => item.Contains(parameter))))
+            if (parametersList.Contains(parametersList.FirstOrDefault(item => item.Contains(parameter))))
             {
-                configurations.Remove(configurations.FirstOrDefault(item => item.Contains(parameter)));
-                configurations.Add(parameter + "=" + value);
+                parametersList.Remove(parametersList.FirstOrDefault(item => item.Contains(parameter)));
+                parametersList.Add(parameter + "=" + value);
                 Configs.AddLogsCollected($"Config changed: " + parameter + "=" + value);
             }
             else
             {
-                configurations.Add(parameter + "=" + value);
+                parametersList.Add(parameter + "=" + value);
                 Configs.AddLogsCollected($"Config added: " + parameter + "=" + value);
             }
         }
 
         public static string HtmlFilePath { get; set; }
 
-        public static string XlsFilePath
-        {
-            get
-            {
-                return xlsFilePath;
-            }
-            set
-            {
-                xlsFilePath = value;
-            }
-        }
+        public static string XlsFilePath { get; set; }
 
         public static bool FiveDayMode { get; set; }
 
         public static string BirthdayColumnNumber { get; set; }
         public static string EmployeeNameColumnNumber { get; set; }
 
-        public static string LogsCollected
-        {
-            get
-            {
-                return logsCollected;
-            }
-        }
+        public static string LogsCollected { get; private set; } = "";
 
         public static void AddLogsCollected(string log)
         {
             log = $"\n{DateTime.Now} - " + log;
             File.AppendAllText(Configs.LogsPath, log);
-            logsCollected = String.Concat(logsCollected, log.Replace("\t", "&#9;").Replace("\n", "<br>"));
+            LogsCollected = String.Concat(LogsCollected, log.Replace("\t", "&#9;").Replace("\n", "<br>"));
         }
 
         public static List<string> LogsRecievers

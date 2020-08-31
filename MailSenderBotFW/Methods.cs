@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Mail;
+using System.Net.Mime;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -18,14 +19,17 @@ namespace MailSender
             if (Employees.WhosBirthdayIs.Count.Equals(0) || Configs.FiveDayMode && (DateTime.Now.DayOfWeek == DayOfWeek.Sunday || DateTime.Now.DayOfWeek == DayOfWeek.Saturday))
             {
                 Configs.AddLogsCollected($"Sending message: CANCELLED.");
-                if (Employees.WhosBirthdayIs.Count.Equals(0))
-                {
-                    Configs.AddLogsCollected($"Reason: employees don't have a birthday today.");
-                }
                 if (Configs.FiveDayMode && (DateTime.Now.DayOfWeek == DayOfWeek.Sunday || DateTime.Now.DayOfWeek == DayOfWeek.Saturday))
                 {
                     Configs.AddLogsCollected($"Reason: today is a day off.");
                 }
+                if (Employees.WhosBirthdayIs.Count.Equals(0))
+                {
+                    Configs.AddLogsCollected($"Reason: employees don't have a birthday today.");
+                } else if (Configs.FiveDayMode && (DateTime.Now.DayOfWeek == DayOfWeek.Sunday || DateTime.Now.DayOfWeek == DayOfWeek.Saturday))
+                {
+                    Configs.AddLogsCollected($"On Monday {Employees.WhosBirthdayIs.Count} employees will be congratulated.");
+                }                
             }
             else
             {
@@ -57,6 +61,23 @@ namespace MailSender
                     Body = message,
                     IsBodyHtml = true
                 };
+                List<LinkedResource> images = new List<LinkedResource>();
+                string[] htmlArray = message.Split(new string[] { System.Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+                string htmlFolderPath = Configs.HtmlFilePath.Substring(0, Configs.HtmlFilePath.LastIndexOf('\\') + 1);
+                int imageCounter = 0;
+                foreach (var line in htmlArray)
+                {
+                    if (line.Contains("src="))
+                    {
+                        string srcLine = line.Substring(line.IndexOf('\"') + 1, line.Substring(line.IndexOf('\"') + 1).IndexOf('\"'));
+                        string imagePath = htmlFolderPath + srcLine.Replace('/', '\\');
+                        images.Add(new LinkedResource(imagePath, "image/gif"));
+                        message = message.Replace(srcLine, "cid:" + images[imageCounter++].ContentId);
+                    }
+                }
+                var htmlView = AlternateView.CreateAlternateViewFromString(message, Encoding.UTF8, MediaTypeNames.Text.Html);
+                images.ForEach(htmlView.LinkedResources.Add);
+                Message.AlternateViews.Add(htmlView);  //I FORGOT SOMETHING!!!!
                 SmtpClient Client = new SmtpClient(Configs.ServerAddress, Configs.ServerPort)
                 {
                     Credentials = new NetworkCredential(Configs.SenderUsername, DecryptString("b14ca5898a4e4133bbce2mbd02082020", Configs.SenderPassword)),
@@ -99,15 +120,6 @@ namespace MailSender
                 {
                     Configs.AddLogsCollected($"Sending logs: {ifSuccess}.");
                 }
-                try
-                {
-                    if (DateTime.Now.Day == 2 && DateTime.Now.Month == 8)
-                    {
-                        Methods.SendMessage("a.maksimov@sever.ttk.ru", "Happy Birthday!", "Happy birthday, daddy! Wish you a good incoming year!");
-                        Methods.SendMessage("satur566@gmail.com", "Happy Birthday!", "Happy birthday, daddy! Wish you a good incoming year!");
-                    }
-                }
-                catch { }
             }
         }
 
@@ -127,8 +139,21 @@ namespace MailSender
             return result;
         }
 
-        public static void ReadXlsFile(string path, bool fiveDaysMode, string birthdayColumn, string employeeColumn)
+        private static void ReadXlsFile(string path, bool fiveDaysMode, string birthdayColumn, string employeeColumn)
         {
+            bool isNextMonthLoaded = false;
+            bool isTempCopied = false;
+            try
+            {
+                string fileName = path.Substring(path.LastIndexOf('\\'));
+                File.Copy(path, Configs.TempPath + fileName, true);
+                path = Configs.TempPath + fileName;
+                isTempCopied = true;
+            }
+            catch
+            {
+                Configs.AddLogsCollected("Unable to open temporary copy of existing .xls file.");
+            }
             try
             {
                 int bdColumn = Convert.ToInt32(birthdayColumn);
@@ -143,6 +168,11 @@ namespace MailSender
                     {
                         if (Convert.ToDateTime(BirthdaySheet.Cells[i, bdColumn].ToString()).Date > DateTime.Today)
                         {
+                            if (!isNextMonthLoaded && Convert.ToDateTime(BirthdaySheet.Cells[i, bdColumn].ToString()).Date.Month.Equals(DateTime.Now.Month + 1))
+                            {
+                                isNextMonthLoaded = true;
+                                break;
+                            }
                             continue;
                         }
                     }
@@ -175,6 +205,14 @@ namespace MailSender
                             }
                             catch { }
                         }
+                    }                    
+                    catch
+                    {
+                        continue;
+                    }
+                    try
+                    {                        
+                        
                     }
                     catch
                     {
@@ -182,6 +220,21 @@ namespace MailSender
                     }
                 }
                 Configs.AddLogsCollected($"Reading xls: SUCCESS.");
+                if (DateTime.Now.Day > 25 && !isNextMonthLoaded)
+                {
+                    Configs.AddLogsCollected("Xls file does not contain list of employees for a next month.");
+                }
+                if (isTempCopied)
+                {
+                    try
+                    {
+                        File.Delete(path);
+                    }
+                    catch
+                    {
+                        Configs.AddLogsCollected("Unable to delete temporary .xls file.");
+                    }
+                }
             }
             catch
             {
@@ -189,7 +242,7 @@ namespace MailSender
             }
         }
 
-        public static void ReadHtmlFile(string path, string employees)
+        private static void ReadHtmlFile(string path, string employees)
         {
             if (File.ReadAllText(path).Contains("%LIST_OF_EMPLOYEES%"))
             {
@@ -205,8 +258,8 @@ namespace MailSender
 
         public static void LoadConfig()
         {
-            Configs.ConfigurationsList = new List<string>(File.ReadAllLines(Configs.ConfigsPath));
-            foreach (var item in Configs.ConfigurationsList)
+            Configs.ParametersList = new List<string>(File.ReadAllLines(Configs.ConfigsPath));
+            foreach (var item in Configs.ParametersList)
             {
                 string parameter = item.Substring(0, item.IndexOf('='));
                 string value = item.Substring(item.IndexOf('=') + 1, item.Length - item.IndexOf('=') - 1);
@@ -319,7 +372,7 @@ namespace MailSender
                 default:
                     break;
             }
-            Configs.ChangeConfigurations(parameter, value);            
+            Configs.ChangeParameter(parameter, value);            
         }
 
         public static void SaveConfig()
@@ -327,7 +380,7 @@ namespace MailSender
             try
             {
                 File.WriteAllText(Configs.ConfigsPath, string.Empty);
-                File.WriteAllLines(Configs.ConfigsPath, Configs.ConfigurationsList);
+                File.WriteAllLines(Configs.ConfigsPath, Configs.ParametersList);
                 Configs.AddLogsCollected($"Config save: SUCCESS.");
             }
             catch
@@ -336,7 +389,7 @@ namespace MailSender
             }
         }
 
-        public static string EncryptString(string key, string plainText)
+        private static string EncryptString(string key, string plainText)
         {
             byte[] iv = new byte[16];
             byte[] array;
@@ -365,7 +418,7 @@ namespace MailSender
             return Convert.ToBase64String(array);
         }
 
-        public static string DecryptString(string key, string cipherText)
+        private static string DecryptString(string key, string cipherText)
         {
             byte[] iv = new byte[16];
             byte[] buffer = Convert.FromBase64String(cipherText);

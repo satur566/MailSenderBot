@@ -47,7 +47,7 @@ namespace MailSender
                                     $"logRecievers\t\t\tList of logs recievers comma separated.\n" +
                                     $"\nUsage exaple:\n\n" +
                                     $"-editconfig senderEmail=info@mail.com senderPassword=Qwerty123 htmlPath=C:\\temp\\file.html " +
-                                    $"\nemailRecievers=i.ivanov@mail.com, p.petrov@mail.com\n");
+                                    $"\nemailRecievers=\"i.ivanov@mail.com, p.petrov@mail.com\"\n");
                                 break;
                             case "-showconfig":
                                 foreach (var line in File.ReadAllLines(Configs.ConfigsPath))
@@ -105,7 +105,7 @@ namespace MailSender
             }
             else
             {
-                //TODO: launch WPF app.
+                //TODO: launch desktop app.
             }
         }
     }

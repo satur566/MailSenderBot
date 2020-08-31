@@ -5,7 +5,7 @@ namespace MailSender
 {
     static class Employees
     {
-        private static List<string> whosBirthdayIs = new List<string>();
+        private static readonly List<string> whosBirthdayIs = new List<string>();
         private static string congratulationsString;
 
         public static List<string> WhosBirthdayIs
