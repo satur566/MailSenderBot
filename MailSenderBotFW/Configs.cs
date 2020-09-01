@@ -142,6 +142,7 @@ namespace MailSender
                 SortConfiguration(ref tempList, "messageSubject");
                 SortConfiguration(ref tempList, "htmlPath");
                 SortConfiguration(ref tempList, "htmlFolderPath");//TODO: if folder - check available file inside, i.e contains listofusers and ends with .html
+                SortConfiguration(ref tempList, "htmlSwitchMode");
                 SortConfiguration(ref tempList, "xlsPath");
                 SortConfiguration(ref tempList, "birthdayColumnNumber");
                 SortConfiguration(ref tempList, "employeeNameColumnNumber");
@@ -176,6 +177,8 @@ namespace MailSender
         public static string HtmlFilePath { get; set; }
 
         public static string HtmlFolderPath { get; set; }
+
+        public static string HtmlSwitchMode { get; set; }
 
         public static List<string> HtmlFilesList
         {
@@ -249,6 +252,9 @@ namespace MailSender
                         break;
                     case "htmlFolderPath":
                         HtmlFolderPath = value;
+                        break;
+                    case "htmlSwitchMode":
+                        HtmlSwitchMode = value;
                         break;
                     case "xlsPath":
                         XlsFilePath = value;
@@ -350,6 +356,33 @@ namespace MailSender
             {
                 Logs.AddLogsCollected($"Config save: FAILURE.");
             }
+        }
+
+        public static string RandomChangeHtmlFile(string currentHtmlFilePath) //TODO: banish to another class.
+        {
+            HtmlFilesList = FileReader.CollectHtmlFiles(HtmlFolderPath);
+            Random random = new Random();
+            int selectedIndex;
+            while (true)
+            {
+                selectedIndex = random.Next(0, HtmlFilesList.Count);
+                if (!HtmlFilesList[selectedIndex].Equals(currentHtmlFilePath))
+                {
+                    break;
+                }
+            }
+            return HtmlFilesList[selectedIndex];
+        }
+
+        public static string AscendingChangeHtmlFile(string currentHtmlFilePath) //TODO: banish to another class.
+        {
+            HtmlFilesList = FileReader.CollectHtmlFiles(HtmlFolderPath);
+            int selectedIndex = HtmlFilesList.IndexOf(currentHtmlFilePath) + 1;
+            if (selectedIndex.Equals(HtmlFilesList.Count))
+            {
+                selectedIndex = 0;
+            }
+            return HtmlFilesList[selectedIndex];
         }
     }
 }

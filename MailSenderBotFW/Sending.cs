@@ -11,12 +11,14 @@ namespace MailSender
     {
         public static void SendMail()
         {
-            Configs.HtmlFilesList = FileReader.CollectHtmlFiles(Configs.HtmlFolderPath);
-            Employees.WhosBirthdayIs = FileReader.ReadXlsFile(Configs.XlsFilePath, Configs.FiveDayMode, Configs.BirthdayColumnNumber, Configs.EmployeeNameColumnNumber);
-            Random random = new Random();
-            int selectedIndex = random.Next(0, Configs.HtmlFilesList.Count);
-            Configs.MessageText = FileReader.ReadHtmlFile(Configs.HtmlFilesList[selectedIndex], Employees.CongratulationsList);
-            Logs.AddLogsCollected($"Selected {Configs.HtmlFilesList[selectedIndex]} sample of html body.");            
+            if (String.IsNullOrEmpty(Configs.HtmlFilePath) || String.IsNullOrWhiteSpace(Configs.HtmlFilePath))
+            {
+                Configs.EditConfig("htmlPath", Configs.RandomChangeHtmlFile(Configs.HtmlFilePath));
+                Configs.SaveConfig();
+            }
+            Employees.WhosBirthdayIs = FileReader.ReadXlsFile(Configs.XlsFilePath, Configs.FiveDayMode, Configs.BirthdayColumnNumber, Configs.EmployeeNameColumnNumber);            
+            Configs.MessageText = FileReader.ReadHtmlFile(Configs.HtmlFilePath, Employees.CongratulationsList);
+            Logs.AddLogsCollected($"Selected {Configs.HtmlFilePath} sample of html body.");            
             if (Employees.WhosBirthdayIs.Count.Equals(0) || Configs.FiveDayMode && (DateTime.Now.DayOfWeek == DayOfWeek.Sunday || DateTime.Now.DayOfWeek == DayOfWeek.Saturday))
             {
                 Logs.AddLogsCollected($"Sending message: CANCELLED.");
@@ -46,9 +48,22 @@ namespace MailSender
                     {
                         SendMessage(reciever, Configs.MessageSubject, Configs.MessageText);
                     }
+                    switch (Configs.HtmlSwitchMode.ToLower())
+                    {
+                        case "ascending":
+                            Configs.EditConfig("htmlPath", Configs.AscendingChangeHtmlFile(Configs.HtmlFilePath));
+                            Configs.SaveConfig();
+                            break;
+                        case "random":
+                            Configs.EditConfig("htmlPath", Configs.RandomChangeHtmlFile(Configs.HtmlFilePath));
+                            Configs.SaveConfig();
+                            break;
+                        default:
+                            break;
+                    }                                      
                 }
             }
-        }
+        }        
 
         public static void SendMessage(string reciever, string subject, string message)
         {
@@ -66,7 +81,7 @@ namespace MailSender
                 string[] htmlArray = message.Split(new string[] { System.Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
                 string htmlFolderPath = Configs.HtmlFilePath.Substring(0, Configs.HtmlFilePath.LastIndexOf('\\') + 1);
                 int imageCounter = 0;
-                foreach (var line in htmlArray)
+                foreach (var line in htmlArray) //Try catch if no images in path selected in src in html
                 {
                     if (line.Contains("src="))
                     {

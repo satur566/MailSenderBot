@@ -9,9 +9,10 @@ namespace MailSender
     {
         private static void ShowHelp()
         {
-            Console.WriteLine($"\n-silent\t\t\t\tLaunch program without any GUI and output, excluding log.\n" + //TODO: htmlFolderPath
-                                    $"-showconfig\t\t\tShow current configuration stored in config.cfg file.\n" +
+            Console.WriteLine($"\n-run\t\t\t\tRuns the program in dialogue mode with user.\n" +
+                                    "-silent\t\t\t\tLaunch program without any GUI and output, excluding log.\n" +
                                     $"-help\t\t\t\tDisplays help.\n" +
+                                    $"-showconfig\t\t\tShow current configuration stored in config.cfg file.\n" +                                    
                                     $"-editconfig\t\t\tEdit current configuration stored in config.cfg file. " +
                                     $"\n\t\t\t\tUsage: -editconfig parameter=\"value\" \n" +
                                     $"\nList of parameters available:\n\n" +
@@ -24,6 +25,12 @@ namespace MailSender
                                     $"messageSubject\t\t\tDisplayed subject of e-mail.\n" +
                                     $"htmlPath\t\t\tPath to html file. File should contain at least %LIST_OF_EMPLOYEES% string " +
                                     $"\n\t\t\t\tinside and has .html file extension.\n" +
+                                    $"htmlFolderPath\t\t\tPath to folder which contains at least one html file.\n" +
+                                    $"htmlSwitchMode\t\t\tSwitch mode of message body:\n" +
+                                    $"\t\t\t\t\trandom - pick message body from random html-sample file each launch.\n" +
+                                    $"\t\t\t\t\tascending - pick message body in ascendingly ordered html-sample \n" +
+                                    $"\t\t\t\t\tfile each launch.\n" +
+                                    $"\t\t\t\t\tno switch - disable pick new body.\n" + 
                                     $"xlsPath\t\t\t\tPath to xls file. File should has .xls file extension.\n" +
                                     $"birthdayColumnNumber\t\tNumber of column, contains date of employee birthday. " +
                                     $"\n\t\t\t\tNote that date format starts with \' i.e \'{DateTime.Now}\n" +
@@ -41,6 +48,8 @@ namespace MailSender
 
         private static void ShowConfig() //TODO: if empty - output "unconfigured"
         {
+            Console.WriteLine($"Configuration file name: {Configs.ConfigsPath}\n" +
+                $"\nContent:");
             foreach (var line in File.ReadAllLines(Configs.ConfigsPath))
             {
                 Console.WriteLine(line);
@@ -104,15 +113,17 @@ namespace MailSender
                 }
                 if(args.Contains("-run"))
                 {
+                    Logs.AddLogsCollected("Working mode: dialogue");
                     //ADDLOGS COLLECTED!
                     //TODO: greeting string, show config and ask if everything is ok
                     Console.WriteLine($"Hello {Environment.UserName}!\n\n" +
                         $"I'm BirthdayMailSender!\n" +
                         $"There are arguments I can be run with:\n" +
-                        $"-silent\t\t\tSend mail without any output using current configuration.\n" +
-                        $"-help\t\t\tDisplay detailed instruction about every argument and show some usage examples.\n" +
-                        $"-showconfig\t\tDisplay current configuration parameters and values, also destination of config.cfg file.\n" +
-                        $"-editconig\t\tAllow user to change some parameter values.\n\n");
+                        $"-run\t\t\tRuns the program in dialogue mode with user." +
+                        $"-silent\t\t\t\tLaunch program without any GUI and output, excluding log.\n" +
+                        $"-help\t\t\t\tDisplays help.\n" +
+                        $"-showconfig\t\t\tShow current configuration stored in config.cfg file.\n" +                        
+                        $"-editconfig\t\t\tEdit current configuration stored in config.cfg file.");
                     Console.WriteLine($"Here is my current configuration:\n");
                     ShowConfig();
                     Console.Write("Do you want to send message with current configuration(y/n)? ");
@@ -135,10 +146,14 @@ namespace MailSender
                             break;
                         case "n":
                         case "no":
+                            Logs.AddLogsCollected("Sending message cancelled.");
+                            Logs.AddLogsCollected("Reason: user cancel.");
                             Console.WriteLine($"Sending cancelled.");
                             break;
                         default:
                             Console.WriteLine($"It is not look's like \"yes\". Sending cancelled.");
+                            Logs.AddLogsCollected("Sending message cancelled.");
+                            Logs.AddLogsCollected("Reason: incorrect user input.");
                             break;
                     }
                 }
