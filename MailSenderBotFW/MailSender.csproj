@@ -63,7 +63,7 @@
     <Compile Include="Configs.cs" />
     <Compile Include="Employees.cs" />
     <Compile Include="Encryptor.cs" />
-    <Compile Include="FileReader.cs" />
+    <Compile Include="FileWorks.cs" />
     <Compile Include="Logs.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

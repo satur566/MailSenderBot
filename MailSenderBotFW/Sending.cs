@@ -14,10 +14,10 @@ namespace MailSender
             if (String.IsNullOrEmpty(Configs.HtmlFilePath) || String.IsNullOrWhiteSpace(Configs.HtmlFilePath))
             {
                 Configs.EditConfig("htmlPath", Configs.RandomChangeHtmlFile(Configs.HtmlFilePath));
-                Configs.SaveConfig();
+                FileWorks.SaveConfig();
             }
-            Employees.WhosBirthdayIs = FileReader.ReadXlsFile(Configs.XlsFilePath, Configs.FiveDayMode, Configs.BirthdayColumnNumber, Configs.EmployeeNameColumnNumber);            
-            Configs.MessageText = FileReader.ReadHtmlFile(Configs.HtmlFilePath, Employees.CongratulationsList);
+            Employees.WhosBirthdayIs = FileWorks.ReadXlsFile(Configs.XlsFilePath, Configs.FiveDayMode, Configs.BirthdayColumnNumber, Configs.EmployeeNameColumnNumber);            
+            Configs.MessageText = FileWorks.ReadHtmlFile(Configs.HtmlFilePath, Employees.CongratulationsList);
             Logs.AddLogsCollected($"Selected {Configs.HtmlFilePath} sample of html body.");            
             if (Employees.WhosBirthdayIs.Count.Equals(0) || Configs.FiveDayMode && (DateTime.Now.DayOfWeek == DayOfWeek.Sunday || DateTime.Now.DayOfWeek == DayOfWeek.Saturday))
             {
@@ -52,11 +52,11 @@ namespace MailSender
                     {
                         case "ascending":
                             Configs.EditConfig("htmlPath", Configs.AscendingChangeHtmlFile(Configs.HtmlFilePath));
-                            Configs.SaveConfig();
+                            FileWorks.SaveConfig();
                             break;
                         case "random":
                             Configs.EditConfig("htmlPath", Configs.RandomChangeHtmlFile(Configs.HtmlFilePath));
-                            Configs.SaveConfig();
+                            FileWorks.SaveConfig();
                             break;
                         default:
                             break;

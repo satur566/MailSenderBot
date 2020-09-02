@@ -1,12 +1,144 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 
 namespace MailSender
 {
     class Program
     {
+        static void Main(string[] args) //TODO: Learn how to use catch (Exception e) and throw new exception. AND USE IT!
+        {
+            Logs.AddLogsCollected($"\n\n\nCurrent user: {Environment.UserName}");
+            if (args.Length > 0)
+            {
+                for (int i = 0; i < args.Length; i++)
+                {
+                    if (args[i].StartsWith("-"))
+                    {
+                        switch (args[i].ToLower())
+                        {
+                            case "-run":
+                                break;
+                            case "-silent":
+                                break;
+                            case "-help":
+                                ShowHelp();
+                                break;
+                            case "-showconfig":
+                                ShowConfig();
+                                break;
+                            case "-editconfig":
+                                EditConfiguration(ref i, args);
+                                break;
+                            default:
+                                Console.WriteLine("Unknown parameter.");
+                                break;
+                        }
+                    }
+                }
+                if (args.Contains("-run"))
+                {
+                    RunApp();
+                }
+                else if (args.Contains("-silent"))
+                {
+                    Silent();
+                }
+            }
+            else
+            {
+                ShowHelp();
+            }
+        }
+
+        private static void RunApp()
+        {
+            Logs.AddLogsCollected("Working mode: dialogue");
+            //TODO: ADDLOGS COLLECTED!
+            Console.WriteLine($"Hello {Environment.UserName}!\n\n" +
+                $"I'm BirthdayMailSender!\n" +
+                $"There are arguments I can be run with:\n" +
+                $"-run\t\t\tRuns the program in dialogue mode with user." +
+                $"-silent\t\t\t\tLaunch program without any GUI and output, excluding log.\n" +
+                $"-help\t\t\t\tDisplays help.\n" +
+                $"-showconfig\t\t\tShow current configuration stored in config.cfg file.\n" +
+                $"-editconfig\t\t\tEdit current configuration stored in config.cfg file.");
+            Console.WriteLine($"Here is my current configuration:\n");
+            ShowConfig();
+            Console.Write("Do you want to send message with current configuration(y/n)? ");
+            switch (Console.ReadLine().ToLower())
+            {
+                case "y":
+                case "yes":
+                    try
+                    {
+                        Console.WriteLine("Prepare to sending...");
+                        Configs.ParametersList = FileWorks.LoadConfig(FileWorks.ConfigsPath);
+                        Sending.SendMail();
+                        Logs.SendLogs();
+                        Console.WriteLine("Sending succesful!");
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine($"Unable to send message: {e.Message}");
+                    }
+                    break;
+                case "n":
+                case "no":
+                    Logs.AddLogsCollected("Sending message cancelled.");
+                    Logs.AddLogsCollected("Reason: user cancel.");
+                    Console.WriteLine($"Sending cancelled.");
+                    break;
+                default:
+                    Console.WriteLine($"It is not look's like \"yes\". Sending cancelled.");
+                    Logs.AddLogsCollected("Sending message cancelled.");
+                    Logs.AddLogsCollected("Reason: incorrect user input.");
+                    break;
+            }
+        }
+        private static void EditConfiguration(ref int i, string[] argunemts)
+        {
+            if (i + 1 <= argunemts.Length)
+            {
+                try
+                {
+                    Configs.ParametersList = FileWorks.LoadConfig(FileWorks.ConfigsPath);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"Unable to load previous configuration: {e.Message}");
+                }
+                for (int j = i + 1; j < argunemts.Length && !argunemts[j].StartsWith("-"); j++)
+                {
+                    try
+                    {
+                        string parameter = argunemts[j].Substring(0, argunemts[j].IndexOf('='));
+                        string value = argunemts[j].Substring(argunemts[j].IndexOf('=') + 1, argunemts[j].Length - argunemts[j].IndexOf('=') - 1);
+                        Configs.EditConfig(parameter, value);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine($"Unable to edit configuration: {e.Message}");
+                    }
+                    i++;
+                }
+            }
+            FileWorks.SaveConfig(); //TODO: maybe try catch?
+        }
+        private static void Silent()
+        {
+            try
+            {
+                Logs.AddLogsCollected("Working mode: silent");
+                Configs.ParametersList = FileWorks.LoadConfig(FileWorks.ConfigsPath);
+                Sending.SendMail();
+                Logs.SendLogs();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Unable to send message: {e.Message}");
+            }
+        }
         private static void ShowHelp()
         {
             Console.WriteLine($"\n-run\t\t\t\tRuns the program in dialogue mode with user.\n" +
@@ -45,137 +177,19 @@ namespace MailSender
                                     $"-editconfig senderEmail=info@mail.com senderPassword=Qwerty123 htmlPath=C:\\temp\\file.html " +
                                     $"\nemailRecievers=\"i.ivanov@mail.com, p.petrov@mail.com\"\n");
         }
-
-        private static void ShowConfig() //TODO: if empty - output "unconfigured"
+        private static void ShowConfig()
         {
-            Console.WriteLine($"Configuration file name: {Configs.ConfigsPath}\n" +
-                $"\nContent:");
-            foreach (var line in File.ReadAllLines(Configs.ConfigsPath))
+            Console.WriteLine($"Configuration file name: {FileWorks.ConfigsPath}\n" +
+                $"\nContent: ");
+            string[] configFileContent = File.ReadAllLines(FileWorks.ConfigsPath);
+            if (configFileContent.Length.Equals(0))
+            {
+                Console.Write("nothing to display, file is empty.");
+            }
+            foreach (string line in configFileContent)
             {
                 Console.WriteLine(line);
             }
-        }
-
-        static void Main(string[] args) //TODO: Learn how to use catch (Exception e) and throw new exception. AND USE IT!
-        {
-            Logs.AddLogsCollected($"\n\n\nCurrent user: {Environment.UserName}");
-            if (args.Length > 0)
-            {
-                for (int i = 0; i < args.Length; i++)
-                {
-                    if (args[i].StartsWith("-"))
-                    {
-                        switch (args[i].ToLower())
-                        {
-                            case "-run":
-                                break;
-                            case "-silent":
-                                break;
-                            case "-help":
-                                ShowHelp();
-                                break;
-                            case "-showconfig": //TODO: show config.cfg destination.
-                                ShowConfig();
-                                break;
-                            case "-editconfig":
-                                if (i + 1 <= args.Length)
-                                {
-                                    try
-                                    {
-                                        Configs.LoadConfig();
-                                    }
-                                    catch
-                                    {
-                                        Console.WriteLine("Unable to find previous configuration.");
-                                    }
-                                    for (int j = i + 1; j < args.Length && !args[j].StartsWith("-"); j++)
-                                    {
-                                        try
-                                        {
-                                            string parameter = args[j].Substring(0, args[j].IndexOf('='));
-                                            string value = args[j].Substring(args[j].IndexOf('=') + 1, args[j].Length - args[j].IndexOf('=') - 1);
-                                            Configs.EditConfig(parameter, value);
-                                        }
-                                        catch
-                                        {
-                                            Console.WriteLine("Unable to edit configuration. Invalid parameter.");
-                                        }
-                                        i++;
-                                    }
-                                }
-                                Configs.SaveConfig();
-                                break;
-                            default:
-                                Console.WriteLine("Unknown parameter.");
-                                break;
-                        }
-                    }
-                }
-                if(args.Contains("-run"))
-                {
-                    Logs.AddLogsCollected("Working mode: dialogue");
-                    //ADDLOGS COLLECTED!
-                    //TODO: greeting string, show config and ask if everything is ok
-                    Console.WriteLine($"Hello {Environment.UserName}!\n\n" +
-                        $"I'm BirthdayMailSender!\n" +
-                        $"There are arguments I can be run with:\n" +
-                        $"-run\t\t\tRuns the program in dialogue mode with user." +
-                        $"-silent\t\t\t\tLaunch program without any GUI and output, excluding log.\n" +
-                        $"-help\t\t\t\tDisplays help.\n" +
-                        $"-showconfig\t\t\tShow current configuration stored in config.cfg file.\n" +                        
-                        $"-editconfig\t\t\tEdit current configuration stored in config.cfg file.");
-                    Console.WriteLine($"Here is my current configuration:\n");
-                    ShowConfig();
-                    Console.Write("Do you want to send message with current configuration(y/n)? ");
-                    switch (Console.ReadLine().ToLower())
-                    {
-                        case "y":
-                        case "yes":
-                            try
-                            {
-                                Console.WriteLine("Prepare to sending...");
-                                Configs.LoadConfig();
-                                Sending.SendMail();
-                                Logs.SendLogs();
-                                Console.WriteLine("Sending succesful!");
-                            }
-                            catch
-                            {
-                                Console.WriteLine("Unable to send message. Check configuration.");
-                            }
-                            break;
-                        case "n":
-                        case "no":
-                            Logs.AddLogsCollected("Sending message cancelled.");
-                            Logs.AddLogsCollected("Reason: user cancel.");
-                            Console.WriteLine($"Sending cancelled.");
-                            break;
-                        default:
-                            Console.WriteLine($"It is not look's like \"yes\". Sending cancelled.");
-                            Logs.AddLogsCollected("Sending message cancelled.");
-                            Logs.AddLogsCollected("Reason: incorrect user input.");
-                            break;
-                    }
-                }
-                else if (args.Contains("-silent"))
-                {
-                    try
-                    {
-                        Logs.AddLogsCollected("Working mode: silent");
-                        Configs.LoadConfig();                        
-                        Sending.SendMail();
-                        Logs.SendLogs();
-                    }
-                    catch
-                    {
-                        Console.WriteLine("Unable to send message. Check configuration.");
-                    }
-                }
-            }
-            else
-            {
-                ShowHelp();
-            }
-        }
+        }        
     }
 }

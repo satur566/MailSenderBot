@@ -2,11 +2,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 
 namespace MailSender
 {
-    static class FileReader
+    static class FileWorks
     {
+        private static readonly string workingDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
         public static List<string> ReadXlsFile(string path, bool fiveDaysMode, string birthdayColumn, string employeeColumn)
         {
             List<string> employeesList = new List<string>();
@@ -15,13 +17,15 @@ namespace MailSender
             try
             {
                 string fileName = path.Substring(path.LastIndexOf('\\'));
-                File.Copy(path, Configs.TempPath + fileName, true);
-                path = Configs.TempPath + fileName;
+                File.Copy(path, TempPath + fileName, true);
+                path = TempPath + fileName;
                 isTempCopied = true;
             }
             catch
             {
-                Logs.AddLogsCollected("Unable to open temporary copy of existing .xls file.");
+                string message = "Unable to open temporary copy of existing .xls file.";
+                Logs.AddLogsCollected(message);
+                throw new Exception(message);
             }
             try
             {
@@ -74,14 +78,6 @@ namespace MailSender
                             }
                             catch { }
                         }
-                    }
-                    catch
-                    {
-                        continue;
-                    }
-                    try
-                    {
-
                     }
                     catch
                     {
@@ -141,6 +137,94 @@ namespace MailSender
                 }
             }
             return filesList;
+        }
+
+        public static string LogsPath
+        {
+            get
+            {
+                string logsDirectory = workingDirectory + "\\logs";
+                string logFile = $"\\{DateTime.Now.Month:D}-{DateTime.Now.Year}.log";
+                if (!File.Exists(logsDirectory + logFile))
+                {
+                    try
+                    {
+                        Directory.CreateDirectory(logsDirectory);
+                        var file = File.Create(logsDirectory + logFile);
+                        file.Close();
+                    }
+                    catch
+                    {
+                        Logs.AddLogsCollected("Unable to create logs directory.");
+                    }
+
+                }
+                return logsDirectory + logFile;
+            }
+        }
+
+        public static string ConfigsPath
+        {
+            get
+            {
+                string configDirectory = workingDirectory + "\\etc";
+                if (!File.Exists(configDirectory + "\\config.cfg"))
+                {
+                    try
+                    {
+                        Directory.CreateDirectory(configDirectory);
+                        var file = File.Create(configDirectory + "\\config.cfg");
+                        file.Close();
+                        File.WriteAllLines(configDirectory + "\\config.cfg", Configs.ParametersList);
+                    }
+                    catch
+                    {
+                        Logs.AddLogsCollected("Unable to create config directory.");
+                    }
+
+                }
+                return configDirectory + "\\config.cfg";
+            }
+        }
+
+        private static string TempPath
+        {
+            get
+            {
+                string tempDirectory = workingDirectory + "\\temp";
+                if (!Directory.Exists(tempDirectory))
+                {
+                    try
+                    {
+                        Directory.CreateDirectory(tempDirectory);
+                    }
+                    catch
+                    {
+                        Logs.AddLogsCollected("Unable to create temp directory");
+                    }
+
+                }
+                return tempDirectory;
+            }
+        }
+
+        public static void SaveConfig()
+        {
+            try
+            {
+                File.WriteAllText(ConfigsPath, string.Empty);
+                File.WriteAllLines(ConfigsPath, Configs.ParametersList);
+                Logs.AddLogsCollected($"Config save: SUCCESS.");
+            }
+            catch
+            {
+                Logs.AddLogsCollected($"Config save: FAILURE.");
+            }
+        }
+
+        public static List<string> LoadConfig(string path)
+        {
+            return new List<string>(File.ReadAllLines(path));            
         }
     }
 }

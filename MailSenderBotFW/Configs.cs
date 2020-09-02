@@ -11,8 +11,7 @@ namespace MailSender
         private static List<string> htmlFilesList = new List<string>();
         private static readonly List<string> emailRecievers = new List<string>();
         private static List<string> parametersList = new List<string>();
-        private static readonly List<string> logRecievers = new List<string>();
-        private static readonly string workingDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);        
+        private static readonly List<string> logRecievers = new List<string>();            
 
         //TODO: make replaceable string %CONGRATULATION_TEXT% similar as %LIST_OF_USERS% and reads that text from txt file.
         //TODO: make property of congratulationText path
@@ -51,75 +50,7 @@ namespace MailSender
         public static string ServerAddress { set; get; }
 
         public static int ServerPort { set; get; }        
-
-        public static string LogsPath
-        {
-            get
-            {
-                string logsDirectory = workingDirectory + "\\logs";
-                string logFile = $"\\{DateTime.Now.Month:D}-{DateTime.Now.Year}.log";
-                if (!File.Exists(logsDirectory + logFile))
-                {
-                    try
-                    {
-                        Directory.CreateDirectory(logsDirectory);
-                        var file = File.Create(logsDirectory + logFile);
-                        file.Close();
-                    }
-                    catch
-                    {
-                        Logs.AddLogsCollected("Unable to create logs directory.");
-                    }
-
-                }
-                return logsDirectory + logFile;
-            }
-        }
-
-        public static string ConfigsPath
-        {
-            get
-            {
-                string configDirectory = workingDirectory + "\\etc";
-                if (!File.Exists(configDirectory + "\\config.cfg"))
-                {
-                    try
-                    {
-                        Directory.CreateDirectory(configDirectory);
-                        var file = File.Create(configDirectory + "\\config.cfg");
-                        file.Close();
-                        File.WriteAllLines(configDirectory + "\\config.cfg", parametersList);
-                    }
-                    catch
-                    {
-                        Logs.AddLogsCollected("Unable to create config directory.");
-                    }
-
-                }
-                return configDirectory + "\\config.cfg";
-            }
-        }
-
-        public static string TempPath
-        {
-            get
-            {
-                string tempDirectory = workingDirectory + "\\temp";
-                if(!Directory.Exists(tempDirectory))
-                {
-                    try
-                    {
-                        Directory.CreateDirectory(tempDirectory);
-                    }
-                    catch
-                    {
-                        Logs.AddLogsCollected("Unable to create temp directory");
-                    }
-
-                }
-                return tempDirectory;
-            }
-        }
+        
 
         private static void SortConfiguration(ref List<string> list, string parameter)
         {
@@ -155,6 +86,74 @@ namespace MailSender
             }
             set
             {
+                parametersList.Clear();
+                foreach (var item in value)
+                {
+                    string parameter = item.Substring(0, item.IndexOf('='));
+                    string parameterValue = item.Substring(item.IndexOf('=') + 1, item.Length - item.IndexOf('=') - 1);
+                    switch (parameter)
+                    {
+                        case "senderEmail":
+                            SenderEmail = parameterValue;
+                            break;
+                        case "senderUsername":
+                            SenderUsername = parameterValue;
+                            break;
+                        case "senderPassword":
+                            SenderPassword = parameterValue;
+                            break;
+                        case "senderName":
+                            SenderName = parameterValue;
+                            break;
+                        case "emailRecievers":
+                            EmailRecievers = new List<string>(parameterValue.Split(','));
+                            break;
+                        case "messageSubject":
+                            MessageSubject = parameterValue;
+                            break;
+                        case "htmlPath":
+                            HtmlFilePath = parameterValue;
+                            break;
+                        case "htmlFolderPath":
+                            HtmlFolderPath = parameterValue;
+                            break;
+                        case "htmlSwitchMode":
+                            HtmlSwitchMode = parameterValue;
+                            break;
+                        case "xlsPath":
+                            XlsFilePath = parameterValue;
+                            break;
+                        case "birthdayColumnNumber":
+                            BirthdayColumnNumber = parameterValue;
+                            break;
+                        case "employeeNameColumnNumber":
+                            EmployeeNameColumnNumber = parameterValue;
+                            break;
+                        case "serverAddress":
+                            ServerAddress = parameterValue;
+                            break;
+                        case "serverPort":
+                            ServerPort = Convert.ToInt32(parameterValue);
+                            break;
+                        case "fiveDaysMode":
+                            if (parameterValue.ToLower() == "yes" ||
+                            parameterValue.ToLower() == "y" ||
+                            parameterValue.ToLower() == "true")
+                            {
+                                FiveDayMode = true;
+                            }
+                            else
+                            {
+                                FiveDayMode = false;
+                            }
+                            break;
+                        case "logRecievers":
+                            LogsRecievers = new List<string>(parameterValue.Split(','));
+                            break;
+                        default:
+                            break;
+                    }
+                }
                 parametersList = value;
             }
         }
@@ -218,79 +217,7 @@ namespace MailSender
                     logRecievers.Add(reciever);
                 }
             }
-        }
-
-        public static void LoadConfig()
-        {
-            ParametersList = new List<string>(File.ReadAllLines(ConfigsPath));
-            foreach (var item in ParametersList)
-            {
-                string parameter = item.Substring(0, item.IndexOf('='));
-                string value = item.Substring(item.IndexOf('=') + 1, item.Length - item.IndexOf('=') - 1);
-                switch (parameter)
-                {
-                    case "senderEmail":
-                        SenderEmail = value;
-                        break;
-                    case "senderUsername":
-                        SenderUsername = value;
-                        break;
-                    case "senderPassword":
-                        SenderPassword = value;
-                        break;
-                    case "senderName":
-                        SenderName = value;
-                        break;
-                    case "emailRecievers":
-                        EmailRecievers = new List<string>(value.Split(','));
-                        break;
-                    case "messageSubject":
-                        MessageSubject = value;
-                        break;
-                    case "htmlPath":
-                        HtmlFilePath = value;
-                        break;
-                    case "htmlFolderPath":
-                        HtmlFolderPath = value;
-                        break;
-                    case "htmlSwitchMode":
-                        HtmlSwitchMode = value;
-                        break;
-                    case "xlsPath":
-                        XlsFilePath = value;
-                        break;
-                    case "birthdayColumnNumber":
-                        BirthdayColumnNumber = value;
-                        break;
-                    case "employeeNameColumnNumber":
-                        EmployeeNameColumnNumber = value;
-                        break;
-                    case "serverAddress":
-                        ServerAddress = value;
-                        break;
-                    case "serverPort":
-                        ServerPort = Convert.ToInt32(value);
-                        break;
-                    case "fiveDaysMode":
-                        if (value.ToLower() == "yes" ||
-                        value.ToLower() == "y" ||
-                        value.ToLower() == "true")
-                        {
-                            FiveDayMode = true;
-                        }
-                        else
-                        {
-                            FiveDayMode = false;
-                        }
-                        break;
-                    case "logRecievers":
-                        LogsRecievers = new List<string>(value.Split(','));
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
+        }        
 
         public static void EditConfig(string parameter, string value)
         {
@@ -344,23 +271,9 @@ namespace MailSender
             ChangeParameter(parameter, value);
         }
 
-        public static void SaveConfig()
-        {
-            try
-            {
-                File.WriteAllText(ConfigsPath, string.Empty);
-                File.WriteAllLines(ConfigsPath, ParametersList);
-                Logs.AddLogsCollected($"Config save: SUCCESS.");
-            }
-            catch
-            {
-                Logs.AddLogsCollected($"Config save: FAILURE.");
-            }
-        }
-
         public static string RandomChangeHtmlFile(string currentHtmlFilePath) //TODO: banish to another class.
         {
-            HtmlFilesList = FileReader.CollectHtmlFiles(HtmlFolderPath);
+            HtmlFilesList = FileWorks.CollectHtmlFiles(HtmlFolderPath);
             Random random = new Random();
             int selectedIndex;
             while (true)
@@ -376,7 +289,7 @@ namespace MailSender
 
         public static string AscendingChangeHtmlFile(string currentHtmlFilePath) //TODO: banish to another class.
         {
-            HtmlFilesList = FileReader.CollectHtmlFiles(HtmlFolderPath);
+            HtmlFilesList = FileWorks.CollectHtmlFiles(HtmlFolderPath);
             int selectedIndex = HtmlFilesList.IndexOf(currentHtmlFilePath) + 1;
             if (selectedIndex.Equals(HtmlFilesList.Count))
             {

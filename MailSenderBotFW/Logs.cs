@@ -18,6 +18,7 @@ namespace MailSender
                 catch
                 {
                     ifSuccess = "FAILURE";
+                    throw;
                 }
                 finally
                 {
@@ -46,8 +47,8 @@ namespace MailSender
         public static void AddLogsCollected(string log)
         {
             log = $"\n{DateTime.Now} - " + log;
-            File.AppendAllText(Configs.LogsPath, log);
-            LogsCollected = String.Concat(LogsCollected, log.Replace("\t", "&#9;").Replace("\n", "<br>"));
+            File.AppendAllText(FileWorks.LogsPath, log);
+            LogsCollected = string.Concat(LogsCollected, log.Replace("\t", "&#9;").Replace("\n", "<br>"));
         }
     }
 }
