@@ -23,9 +23,9 @@ namespace MailSender
             }
             catch
             {
-                string message = "Unable to open temporary copy of existing .xls file.";
-                Logs.AddLogsCollected(message);
-                throw new Exception(message);
+                string exceptionMessage = "Unable to open temporary copy of existing .xls file.";
+                Logs.AddLogsCollected(exceptionMessage);
+                throw new Exception(exceptionMessage);
             }
             try
             {
@@ -97,13 +97,18 @@ namespace MailSender
                     }
                     catch
                     {
-                        Logs.AddLogsCollected("Unable to delete temporary .xls file.");
+                        string exceptionMessage = "Unable to delete temporary .xls file.";
+                        Logs.AddLogsCollected(exceptionMessage);
+                        throw new Exception(exceptionMessage);
                     }
                 }
             }
             catch
             {
-                Logs.AddLogsCollected($"Reading xls: FAILURE.");
+                string exceptionMessage = "Reading xls: FAILURE.";
+                Logs.AddLogsCollected(exceptionMessage);
+                throw new Exception(exceptionMessage);
+
             }
             return employeesList;
         }
@@ -155,7 +160,10 @@ namespace MailSender
                     }
                     catch
                     {
-                        Logs.AddLogsCollected("Unable to create logs directory.");
+                        string exceptionMessage = "Unable to create logs directory.";
+                        Logs.AddLogsCollected(exceptionMessage);
+                        throw new Exception(exceptionMessage);
+
                     }
 
                 }
@@ -179,7 +187,9 @@ namespace MailSender
                     }
                     catch
                     {
-                        Logs.AddLogsCollected("Unable to create config directory.");
+                        string exceptionMessage = "Unable to create config directory.";
+                        Logs.AddLogsCollected(exceptionMessage);
+                        throw new Exception(exceptionMessage);
                     }
 
                 }
@@ -199,8 +209,10 @@ namespace MailSender
                         Directory.CreateDirectory(tempDirectory);
                     }
                     catch
-                    {
-                        Logs.AddLogsCollected("Unable to create temp directory");
+                    {                        
+                        string exceptionMessage = "Unable to create temp directory.";
+                        Logs.AddLogsCollected(exceptionMessage);
+                        throw new Exception(exceptionMessage);
                     }
 
                 }
@@ -217,8 +229,10 @@ namespace MailSender
                 Logs.AddLogsCollected($"Config save: SUCCESS.");
             }
             catch
-            {
-                Logs.AddLogsCollected($"Config save: FAILURE.");
+            {                
+                string exceptionMessage = "Config save: FAILURE.";
+                Logs.AddLogsCollected(exceptionMessage);
+                throw new Exception(exceptionMessage);
             }
         }
 

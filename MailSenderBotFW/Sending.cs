@@ -11,7 +11,7 @@ namespace MailSender
     {
         public static void SendMail()
         {
-            if (String.IsNullOrEmpty(Configs.HtmlFilePath) || String.IsNullOrWhiteSpace(Configs.HtmlFilePath))
+            if (string.IsNullOrEmpty(Configs.HtmlFilePath) || string.IsNullOrWhiteSpace(Configs.HtmlFilePath))
             {
                 Configs.EditConfig("htmlPath", Configs.RandomChangeHtmlFile(Configs.HtmlFilePath));
                 FileWorks.SaveConfig();
@@ -46,7 +46,16 @@ namespace MailSender
                 {
                     foreach (var reciever in Configs.EmailRecievers)
                     {
-                        SendMessage(reciever, Configs.MessageSubject, Configs.MessageText);
+                        try
+                        {
+                            SendMessage(reciever, Configs.MessageSubject, Configs.MessageText);
+                            Logs.AddLogsCollected($"Sending message to {reciever}: SUCCESS.");
+                            Logs.AddLogsCollected(Logs.LogConclusionMaker(reciever));
+                        } 
+                        catch (Exception e)
+                        {
+                            throw e;
+                        }
                     }
                     switch (Configs.HtmlSwitchMode.ToLower())
                     {
@@ -65,7 +74,7 @@ namespace MailSender
             }
         }        
 
-        public static void SendMessage(string reciever, string subject, string message)
+        public static void SendMessage(string reciever, string subject, string message) //TODO: try to make throw in get properties in Configs.sendermail etc if empty.
         {
             try
             {
@@ -85,37 +94,39 @@ namespace MailSender
                 {
                     if (line.Contains("src="))
                     {
-                        string srcLine = line.Substring(line.IndexOf('\"') + 1, line.Substring(line.IndexOf('\"') + 1).IndexOf('\"'));
-                        string imagePath = htmlFolderPath + srcLine.Replace('/', '\\');
-                        images.Add(new LinkedResource(imagePath, "image/gif"));
-                        message = message.Replace(srcLine, "cid:" + images[imageCounter++].ContentId);
+                        try
+                        {
+                            string srcLine = line.Substring(line.IndexOf('\"') + 1, line.Substring(line.IndexOf('\"') + 1).IndexOf('\"'));
+                            string imagePath = htmlFolderPath + srcLine.Replace('/', '\\');
+                            images.Add(new LinkedResource(imagePath, "image/gif"));
+                            message = message.Replace(srcLine, "cid:" + images[imageCounter++].ContentId);
+                        }
+                        catch
+                        {
+                            throw new Exception("Unable to attach images from html file.");
+                        }
                     }
                 }
                 var htmlView = AlternateView.CreateAlternateViewFromString(message, Encoding.UTF8, MediaTypeNames.Text.Html);
                 images.ForEach(htmlView.LinkedResources.Add);
-                Message.AlternateViews.Add(htmlView);  //I FORGOT SOMETHING!!!!
+                Message.AlternateViews.Add(htmlView);
                 SmtpClient Client = new SmtpClient(Configs.ServerAddress, Configs.ServerPort)
                 {
                     Credentials = new NetworkCredential(Configs.SenderUsername, Encryptor.DecryptString("b14ca5898a4e4133bbce2mbd02082020", Configs.SenderPassword)),
                     EnableSsl = false
                 };
-                Client.Send(Message);
-                if (!subject.Contains("log from"))
+                try
                 {
-                    Logs.AddLogsCollected($"Sending message to {reciever}: SUCCESS.");
-                    Logs.AddLogsCollected(Logs.LogConclusionMaker(reciever));
+                    Client.Send(Message);
+                }
+                catch (Exception e)
+                {
+                    throw new Exception($"Unexpected error happened. {e.Message}");
                 }
             }
-            catch
+            catch (Exception e)
             {
-                if (!subject.Contains("log from"))
-                {
-                    Logs.AddLogsCollected($"Sending message to {reciever}: FAILURE.");
-                }
-                else
-                {
-                    Logs.AddLogsCollected($"Sending log to {reciever}: FAILURE.");
-                }
+                throw e;
             }
         }
     }

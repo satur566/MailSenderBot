@@ -70,18 +70,8 @@ namespace MailSender
             {
                 case "y":
                 case "yes":
-                    try
-                    {
-                        Console.WriteLine("Prepare to sending...");
-                        Configs.ParametersList = FileWorks.LoadConfig(FileWorks.ConfigsPath);
-                        Sending.SendMail();
-                        Logs.SendLogs();
-                        Console.WriteLine("Sending succesful!");
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine($"Unable to send message: {e.Message}");
-                    }
+                    Console.WriteLine("Prepare to sending...");
+                    SendAll();
                     break;
                 case "n":
                 case "no":
@@ -127,17 +117,8 @@ namespace MailSender
         }
         private static void Silent()
         {
-            try
-            {
-                Logs.AddLogsCollected("Working mode: silent");
-                Configs.ParametersList = FileWorks.LoadConfig(FileWorks.ConfigsPath);
-                Sending.SendMail();
-                Logs.SendLogs();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine($"Unable to send message: {e.Message}");
-            }
+            Logs.AddLogsCollected("Working mode: silent");            
+            SendAll();
         }
         private static void ShowHelp()
         {
@@ -190,6 +171,31 @@ namespace MailSender
             {
                 Console.WriteLine(line);
             }
-        }        
+        }     
+        
+        private static void SendAll()
+        {
+            Configs.ParametersList = FileWorks.LoadConfig(FileWorks.ConfigsPath);
+            try
+            {
+                Sending.SendMail();
+            }
+            catch (Exception e)
+            {
+                string exceptionMessage = $"Sending message: FAILURE.\n\t\tReason: {e.Message}";
+                Console.WriteLine(exceptionMessage);
+                Logs.AddLogsCollected(exceptionMessage);
+            }
+            try
+            {
+                Logs.SendLogs();
+            }
+            catch (Exception e)
+            {
+                string exceptionMessage = $"Sending logs: FAILURE.\n\t\tReason: {e.Message}";
+                Console.WriteLine(exceptionMessage);
+                Logs.AddLogsCollected(exceptionMessage);
+            }
+        }
     }
 }

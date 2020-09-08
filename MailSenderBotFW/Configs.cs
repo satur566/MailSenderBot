@@ -6,9 +6,9 @@ using System.Reflection;
 
 namespace MailSender
 {
-    static class Configs
+    static class Configs //TODO: add responsibleUsers and send them message about fulfilling of xls list.
     {
-        private static List<string> htmlFilesList = new List<string>();
+        private static readonly List<string> htmlFilesList = new List<string>();
         private static readonly List<string> emailRecievers = new List<string>();
         private static List<string> parametersList = new List<string>();
         private static readonly List<string> logRecievers = new List<string>();            
@@ -72,7 +72,7 @@ namespace MailSender
                 SortConfiguration(ref tempList, "emailRecievers");
                 SortConfiguration(ref tempList, "messageSubject");
                 SortConfiguration(ref tempList, "htmlPath");
-                SortConfiguration(ref tempList, "htmlFolderPath");//TODO: if folder - check available file inside, i.e contains listofusers and ends with .html
+                SortConfiguration(ref tempList, "htmlFolderPath");
                 SortConfiguration(ref tempList, "htmlSwitchMode");
                 SortConfiguration(ref tempList, "xlsPath");
                 SortConfiguration(ref tempList, "birthdayColumnNumber");

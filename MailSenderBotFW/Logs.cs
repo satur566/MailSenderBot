@@ -9,20 +9,14 @@ namespace MailSender
         {
             foreach (var reciever in Configs.LogsRecievers)
             {
-                string ifSuccess = "";
                 try
                 {
                     Sending.SendMessage(reciever, $"log from {DateTime.Now}", LogsCollected);
-                    ifSuccess = "SUCCESS";
+                    AddLogsCollected($"Sending logs to {reciever}: SUCCESS.");
                 }
-                catch
+                catch (Exception e)
                 {
-                    ifSuccess = "FAILURE";
-                    throw;
-                }
-                finally
-                {
-                    AddLogsCollected($"Sending logs to {reciever}: {ifSuccess}.");
+                    throw e;
                 }
             }
         }
@@ -33,7 +27,7 @@ namespace MailSender
             string employees = "";
             foreach (var item in Employees.WhosBirthdayIs)
             {
-                employees = String.Concat(employees, "\t" + item.Trim() + "\n");
+                employees = string.Concat(employees, "\t" + item.Trim() + "\n");
 
             }
             string result = $"\nConclusion:" +
@@ -47,8 +41,16 @@ namespace MailSender
         public static void AddLogsCollected(string log)
         {
             log = $"\n{DateTime.Now} - " + log;
-            File.AppendAllText(FileWorks.LogsPath, log);
             LogsCollected = string.Concat(LogsCollected, log.Replace("\t", "&#9;").Replace("\n", "<br>"));
+            try
+            {
+                File.AppendAllText(FileWorks.LogsPath, log);
+            }
+            catch
+            {
+                string message = $"\nUnable to write logs in {FileWorks.LogsPath}";
+                LogsCollected = string.Concat(LogsCollected, message.Replace("\t", "&#9;").Replace("\n", "<br>"));
+            }            
         }
     }
 }
