@@ -6,7 +6,7 @@ namespace MailSender
 {
     class Program
     {
-        static void Main(string[] args) //TODO: Learn how to use catch (Exception e) and throw new exception. AND USE IT!
+        static void Main(string[] args)
         {
             Logs.AddLogsCollected($"\n\n\nCurrent user: {Environment.UserName}");
             if (args.Length > 0)
@@ -113,7 +113,7 @@ namespace MailSender
                     i++;
                 }
             }
-            FileWorks.SaveConfig(); //TODO: maybe try catch?
+            FileWorks.SaveConfig();
         }
         private static void Silent()
         {
@@ -179,16 +179,18 @@ namespace MailSender
             try
             {
                 Sending.SendMail();
+                Console.WriteLine("Sending messages: SUCCESS.");
             }
             catch (Exception e)
             {
-                string exceptionMessage = $"Sending message: FAILURE.\n\t\tReason: {e.Message}";
+                string exceptionMessage = $"Sending messages: FAILURE.\n\t\tReason: {e.Message}";
                 Console.WriteLine(exceptionMessage);
                 Logs.AddLogsCollected(exceptionMessage);
             }
             try
             {
                 Logs.SendLogs();
+                Console.WriteLine("Sending logs: SUCCESS.");
             }
             catch (Exception e)
             {

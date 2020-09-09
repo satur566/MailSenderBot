@@ -9,15 +9,8 @@ namespace MailSender
         {
             foreach (var reciever in Configs.LogsRecievers)
             {
-                try
-                {
-                    Sending.SendMessage(reciever, $"log from {DateTime.Now}", LogsCollected);
-                    AddLogsCollected($"Sending logs to {reciever}: SUCCESS.");
-                }
-                catch (Exception e)
-                {
-                    throw e;
-                }
+                Sending.SendMessage(reciever, $"log from {DateTime.Now}", LogsCollected);
+                AddLogsCollected($"Sending logs to {reciever}: SUCCESS.");
             }
         }
 

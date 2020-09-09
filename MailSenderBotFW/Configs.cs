@@ -17,17 +17,49 @@ namespace MailSender
         //TODO: make property of congratulationText path
          
         //TODO: switch html samples like: every day, every week, every month, every time of the year.
-        //TODO: switch should be random but never same in a row twice and ascendingly ordered by name of html file.
 
-        public static string SenderEmail { set; get; }
+        public static string SenderEmail
+        {
+            get
+            {
+                return SenderEmail;
+            }
+            set //TODO: add this to recievers and log recievers without throw
+            {
+                if (string.IsNullOrEmpty(value) 
+                    && string.IsNullOrWhiteSpace(value))
+                {
+                    string exceptionMessage = "Wrong parameter value. Email can't be empty.";
+                    Logs.AddLogsCollected(exceptionMessage);
+                    throw new Exception(exceptionMessage);
+                }
+                if (!value.Contains("@"))
+                {
+                    string exceptionMessage = "Wrong parameter value. Email should have an @ symbol.";
+                    Logs.AddLogsCollected(exceptionMessage);
+                    throw new Exception(exceptionMessage);
+                }
+                SenderEmail = value;
+            }
+        }
 
         public static string SenderName { set; get; }
 
         public static string SenderUsername { set; get; }
 
-        public static string SenderPassword { set; get; }
+        public static string SenderPassword {
+            get
+            {
+                return Encryptor.DecryptString("b14ca5898a4e4133bbce2mbd02082020", SenderPassword);
+            }
+            set
+            {
+                value = Encryptor.EncryptString("b14ca5898a4e4133bbce2mbd02082020", value);
+                SenderPassword = value;
+            }
+        }
 
-        public static List<string> EmailRecievers
+        public static List<string> EmailRecievers //TODO: throw if .count.equals 0
         {
             get
             {
@@ -47,9 +79,28 @@ namespace MailSender
 
         public static string MessageText { set; get; }
 
-        public static string ServerAddress { set; get; }
+        public static string ServerAddress { set; get; } //TODO: throw if empty
 
-        public static int ServerPort { set; get; }        
+        public static string ServerPort {
+            get
+            {
+                return ServerPort;
+            }
+            set
+            {
+                if (string.IsNullOrEmpty(value) || string.IsNullOrWhiteSpace(value))
+                {
+                    value = "25";
+                }
+                else if (!int.TryParse(value, out _))
+                {
+                    string exceptionMessage = "Wrong parameter value. Port number should be a digit!";
+                    Logs.AddLogsCollected(exceptionMessage);
+                    throw new Exception(exceptionMessage);
+                }
+                ServerPort = value;
+            }
+        }        
         
 
         private static void SortConfiguration(ref List<string> list, string parameter)
@@ -133,7 +184,7 @@ namespace MailSender
                             ServerAddress = parameterValue;
                             break;
                         case "serverPort":
-                            ServerPort = Convert.ToInt32(parameterValue);
+                            ServerPort = parameterValue;
                             break;
                         case "fiveDaysMode":
                             if (parameterValue.ToLower() == "yes" ||
@@ -158,24 +209,39 @@ namespace MailSender
             }
         }
 
-        private static void ChangeParameter(string parameter, string value)
-        {            
-            if (parametersList.Contains(parametersList.FirstOrDefault(item => item.Contains(parameter))))
+        public static string HtmlFilePath { 
+            get
             {
-                parametersList.Remove(parametersList.FirstOrDefault(item => item.Contains(parameter)));
-                parametersList.Add(parameter + "=" + value);
-                Logs.AddLogsCollected($"Config changed: " + parameter + "=" + value);
+                return HtmlFilePath;
             }
-            else
+            set
             {
-                parametersList.Add(parameter + "=" + value);
-                Logs.AddLogsCollected($"Config added: " + parameter + "=" + value);
+                string fileType = value.Substring(value.LastIndexOf('.') + 1, value.Length - value.LastIndexOf('.') - 1);
+                if (!File.Exists(value))
+                {
+                    string exceptionMessage = "Wrong parameter value. Current path does not lead to existing file.";
+                    Logs.AddLogsCollected(exceptionMessage);
+                    throw new Exception(exceptionMessage);
+                } 
+                else if (!fileType.ToLower().Equals("html"))
+                {
+                    string exceptionMessage = "Wrong parameter value. File extension is not html.";
+                    Logs.AddLogsCollected(exceptionMessage);
+                    throw new Exception(exceptionMessage);
+                } 
+                else if ((!File.ReadAllText(value).Contains("%LIST_OF_EMPLOYEES%"))) {
+                    string exceptionMessage = "Wrong parameter value. Html-file does not contain string: %LIST_OF_EMPLOYEES%";
+                    Logs.AddLogsCollected(exceptionMessage);
+                    throw new Exception(exceptionMessage);
+                } 
+                else
+                {
+                    HtmlFilePath = value;
+                }                
             }
         }
 
-        public static string HtmlFilePath { get; set; }
-
-        public static string HtmlFolderPath { get; set; }
+        public static string HtmlFolderPath { get; set; } //TODO: throw if folder !exist or does not contain html files
 
         public static string HtmlSwitchMode { get; set; }
 
@@ -196,12 +262,66 @@ namespace MailSender
             }
         }
 
-        public static string XlsFilePath { get; set; }
+        public static string XlsFilePath { 
+            get
+            {
+                return XlsFilePath;
+            }
+            set
+            {
+                string fileType = value.Substring(value.LastIndexOf('.') + 1, value.Length - value.LastIndexOf('.') - 1);
+                if (!fileType.ToLower().Equals("xls"))
+                {
+                    string exceptionMessage = "Wrong parameter value. File extension is not xls.";
+                    Logs.AddLogsCollected(exceptionMessage);
+                    throw new Exception(exceptionMessage);
+                }
+                else if (!File.Exists(value))
+                {
+                    string exceptionMessage = "Wrong parameter value. Current path does not lead to existing file.";
+                    Logs.AddLogsCollected(exceptionMessage);
+                    throw new Exception(exceptionMessage);
+                } else
+                {
+                    XlsFilePath = value;
+                }
+            }
+        }
 
         public static bool FiveDayMode { get; set; }
 
-        public static string BirthdayColumnNumber { get; set; }
-        public static string EmployeeNameColumnNumber { get; set; }             
+        public static string BirthdayColumnNumber { 
+            get
+            {
+                return BirthdayColumnNumber;
+            }
+            set 
+            {
+                if (!int.TryParse(value, out _))
+                {
+                    string exceptionMessage = "Wrong parameter value. Column number should be a digit!";
+                    Logs.AddLogsCollected(exceptionMessage);
+                    throw new Exception(exceptionMessage);
+                }
+                BirthdayColumnNumber = value;
+            } 
+        }
+        public static string EmployeeNameColumnNumber {
+            get
+            {
+                return EmployeeNameColumnNumber;
+            } 
+            set
+            {
+                if (!int.TryParse(value, out _))
+                {
+                    string exceptionMessage = "Wrong parameter value. Column number should be a digit!";
+                    Logs.AddLogsCollected(exceptionMessage);
+                    throw new Exception(exceptionMessage);
+                }
+                EmployeeNameColumnNumber = value;
+            }
+        }             
 
         public static List<string> LogsRecievers
         {
@@ -221,57 +341,20 @@ namespace MailSender
 
         public static void EditConfig(string parameter, string value)
         {
-            string fileType;
-            switch (parameter)
+            if (parametersList.Contains(parametersList.FirstOrDefault(item => item.Contains(parameter))))
             {
-                case "birthdayColumnNumber":
-                case "employeeNameColumnNumber":
-                    if (!int.TryParse(value, out _))
-                    {
-                        value = "";
-                    }
-                    break;
-                case "serverPort":
-                    if (string.IsNullOrEmpty(value) || string.IsNullOrWhiteSpace(value))
-                    {
-                        value = "25";
-                    }
-                    else if (!int.TryParse(value, out _))
-                    {
-                        value = "";
-                    }
-                    break;
-                case "htmlPath":
-                    fileType = value.Substring(value.LastIndexOf('.') + 1, value.Length - value.LastIndexOf('.') - 1);
-                    if (File.Exists(value) && fileType.ToLower().Equals("html"))
-                    {
-                        if (!File.ReadAllText(value).Contains("%LIST_OF_EMPLOYEES%"))
-                        {
-                            value = "";
-                        }
-                    }
-                    else
-                    {
-                        value = "";
-                    }
-                    break;
-                case "xlsPath":
-                    fileType = value.Substring(value.LastIndexOf('.') + 1, value.Length - value.LastIndexOf('.') - 1);
-                    if (!File.Exists(value) || !fileType.ToLower().Equals("xls"))
-                    {
-                        value = "";
-                    }
-                    break;
-                case "senderPassword":
-                    value = Encryptor.EncryptString("b14ca5898a4e4133bbce2mbd02082020", value);
-                    break;
-                default:
-                    break;
+                parametersList.Remove(parametersList.FirstOrDefault(item => item.Contains(parameter)));
+                parametersList.Add(parameter + "=" + value);
+                Logs.AddLogsCollected($"Config changed: " + parameter + "=" + value);
             }
-            ChangeParameter(parameter, value);
+            else
+            {
+                parametersList.Add(parameter + "=" + value);
+                Logs.AddLogsCollected($"Config added: " + parameter + "=" + value);
+            }
         }
 
-        public static string RandomChangeHtmlFile(string currentHtmlFilePath) //TODO: banish to another class.
+        public static string RandomChangeHtmlFile(string currentHtmlFilePath)
         {
             HtmlFilesList = FileWorks.CollectHtmlFiles(HtmlFolderPath);
             Random random = new Random();
@@ -287,7 +370,7 @@ namespace MailSender
             return HtmlFilesList[selectedIndex];
         }
 
-        public static string AscendingChangeHtmlFile(string currentHtmlFilePath) //TODO: banish to another class.
+        public static string AscendingChangeHtmlFile(string currentHtmlFilePath)
         {
             HtmlFilesList = FileWorks.CollectHtmlFiles(HtmlFolderPath);
             int selectedIndex = HtmlFilesList.IndexOf(currentHtmlFilePath) + 1;

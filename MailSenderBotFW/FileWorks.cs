@@ -25,7 +25,6 @@ namespace MailSender
             {
                 string exceptionMessage = "Unable to open temporary copy of existing .xls file.";
                 Logs.AddLogsCollected(exceptionMessage);
-                throw new Exception(exceptionMessage);
             }
             try
             {
@@ -163,7 +162,6 @@ namespace MailSender
                         string exceptionMessage = "Unable to create logs directory.";
                         Logs.AddLogsCollected(exceptionMessage);
                         throw new Exception(exceptionMessage);
-
                     }
 
                 }

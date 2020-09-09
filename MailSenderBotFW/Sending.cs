@@ -46,16 +46,9 @@ namespace MailSender
                 {
                     foreach (var reciever in Configs.EmailRecievers)
                     {
-                        try
-                        {
-                            SendMessage(reciever, Configs.MessageSubject, Configs.MessageText);
-                            Logs.AddLogsCollected($"Sending message to {reciever}: SUCCESS.");
-                            Logs.AddLogsCollected(Logs.LogConclusionMaker(reciever));
-                        } 
-                        catch (Exception e)
-                        {
-                            throw e;
-                        }
+                        SendMessage(reciever, Configs.MessageSubject, Configs.MessageText);
+                        Logs.AddLogsCollected($"Sending message to {reciever}: SUCCESS.");
+                        Logs.AddLogsCollected(Logs.LogConclusionMaker(reciever));
                     }
                     switch (Configs.HtmlSwitchMode.ToLower())
                     {
@@ -76,58 +69,51 @@ namespace MailSender
 
         public static void SendMessage(string reciever, string subject, string message) //TODO: try to make throw in get properties in Configs.sendermail etc if empty.
         {
-            try
+            MailAddress Sender = new MailAddress(Configs.SenderEmail, Configs.SenderName);
+            MailAddress Reciever = new MailAddress(reciever);
+            MailMessage Message = new MailMessage(Sender, Reciever)
             {
-                MailAddress Sender = new MailAddress(Configs.SenderEmail, Configs.SenderName);
-                MailAddress Reciever = new MailAddress(reciever);
-                MailMessage Message = new MailMessage(Sender, Reciever)
+                Subject = subject,
+                Body = message,
+                IsBodyHtml = true
+            };
+            List<LinkedResource> images = new List<LinkedResource>();
+            string[] htmlArray = message.Split(new string[] { System.Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+            string htmlFolderPath = Configs.HtmlFilePath.Substring(0, Configs.HtmlFilePath.LastIndexOf('\\') + 1);
+            int imageCounter = 0;
+            foreach (var line in htmlArray) //Try catch if no images in path selected in src in html
+            {
+                if (line.Contains("src="))
                 {
-                    Subject = subject,
-                    Body = message,
-                    IsBodyHtml = true
-                };
-                List<LinkedResource> images = new List<LinkedResource>();
-                string[] htmlArray = message.Split(new string[] { System.Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
-                string htmlFolderPath = Configs.HtmlFilePath.Substring(0, Configs.HtmlFilePath.LastIndexOf('\\') + 1);
-                int imageCounter = 0;
-                foreach (var line in htmlArray) //Try catch if no images in path selected in src in html
-                {
-                    if (line.Contains("src="))
+                    try
                     {
-                        try
-                        {
-                            string srcLine = line.Substring(line.IndexOf('\"') + 1, line.Substring(line.IndexOf('\"') + 1).IndexOf('\"'));
-                            string imagePath = htmlFolderPath + srcLine.Replace('/', '\\');
-                            images.Add(new LinkedResource(imagePath, "image/gif"));
-                            message = message.Replace(srcLine, "cid:" + images[imageCounter++].ContentId);
-                        }
-                        catch
-                        {
-                            throw new Exception("Unable to attach images from html file.");
-                        }
+                        string srcLine = line.Substring(line.IndexOf('\"') + 1, line.Substring(line.IndexOf('\"') + 1).IndexOf('\"'));
+                        string imagePath = htmlFolderPath + srcLine.Replace('/', '\\');
+                        images.Add(new LinkedResource(imagePath, "image/gif"));
+                        message = message.Replace(srcLine, "cid:" + images[imageCounter++].ContentId);
+                    }
+                    catch
+                    {
+                        throw new Exception("Unable to attach images from html file.");
                     }
                 }
-                var htmlView = AlternateView.CreateAlternateViewFromString(message, Encoding.UTF8, MediaTypeNames.Text.Html);
-                images.ForEach(htmlView.LinkedResources.Add);
-                Message.AlternateViews.Add(htmlView);
-                SmtpClient Client = new SmtpClient(Configs.ServerAddress, Configs.ServerPort)
-                {
-                    Credentials = new NetworkCredential(Configs.SenderUsername, Encryptor.DecryptString("b14ca5898a4e4133bbce2mbd02082020", Configs.SenderPassword)),
-                    EnableSsl = false
-                };
-                try
-                {
-                    Client.Send(Message);
-                }
-                catch (Exception e)
-                {
-                    throw new Exception($"Unexpected error happened. {e.Message}");
-                }
+            }
+            var htmlView = AlternateView.CreateAlternateViewFromString(message, Encoding.UTF8, MediaTypeNames.Text.Html);
+            images.ForEach(htmlView.LinkedResources.Add);
+            Message.AlternateViews.Add(htmlView);
+            SmtpClient Client = new SmtpClient(Configs.ServerAddress, Convert.ToInt32(Configs.ServerPort))
+            {
+                Credentials = new NetworkCredential(Configs.SenderUsername, Configs.SenderPassword),
+                EnableSsl = false
+            };
+            try
+            {
+                Client.Send(Message);
             }
             catch (Exception e)
             {
-                throw e;
-            }
+                throw new Exception($"Unexpected error happened. {e.Message}");
+            }            
         }
     }
 }
