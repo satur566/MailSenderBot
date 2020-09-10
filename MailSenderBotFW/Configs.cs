@@ -8,6 +8,13 @@ namespace MailSender
 {
     static class Configs //TODO: add responsibleUsers and send them message about fulfilling of xls list.
     {
+        private static string senderEmail;
+        private static string senderPassword;
+        private static string serverPort;
+        private static string htmlFilePath;
+        private static string xlsFilePath;
+        private static string birthdayColumnNumber;
+        private static string employeeNameColumnNumber;
         private static readonly List<string> htmlFilesList = new List<string>();
         private static readonly List<string> emailRecievers = new List<string>();
         private static List<string> parametersList = new List<string>();
@@ -22,7 +29,7 @@ namespace MailSender
         {
             get
             {
-                return SenderEmail;
+                return senderEmail;
             }
             set //TODO: add this to recievers and log recievers without throw
             {
@@ -39,7 +46,7 @@ namespace MailSender
                     Logs.AddLogsCollected(exceptionMessage);
                     throw new Exception(exceptionMessage);
                 }
-                SenderEmail = value;
+                senderEmail = value;
             }
         }
 
@@ -50,12 +57,12 @@ namespace MailSender
         public static string SenderPassword {
             get
             {
-                return Encryptor.DecryptString("b14ca5898a4e4133bbce2mbd02082020", SenderPassword);
+                return Encryptor.DecryptString("b14ca5898a4e4133bbce2mbd02082020", senderPassword);
             }
             set
             {
                 value = Encryptor.EncryptString("b14ca5898a4e4133bbce2mbd02082020", value);
-                SenderPassword = value;
+                senderPassword = value;
             }
         }
 
@@ -84,7 +91,7 @@ namespace MailSender
         public static string ServerPort {
             get
             {
-                return ServerPort;
+                return serverPort;
             }
             set
             {
@@ -98,7 +105,7 @@ namespace MailSender
                     Logs.AddLogsCollected(exceptionMessage);
                     throw new Exception(exceptionMessage);
                 }
-                ServerPort = value;
+                serverPort = value;
             }
         }        
         
@@ -212,7 +219,7 @@ namespace MailSender
         public static string HtmlFilePath { 
             get
             {
-                return HtmlFilePath;
+                return htmlFilePath;
             }
             set
             {
@@ -236,7 +243,7 @@ namespace MailSender
                 } 
                 else
                 {
-                    HtmlFilePath = value;
+                    htmlFilePath = value;
                 }                
             }
         }
@@ -254,10 +261,10 @@ namespace MailSender
             }
             set
             {
-                HtmlFilesList.Clear();
+                htmlFilesList.Clear();
                 foreach (string htmlFile in value)
                 {
-                    HtmlFilesList.Add(htmlFile);
+                    htmlFilesList.Add(htmlFile);
                 }
             }
         }
@@ -265,7 +272,7 @@ namespace MailSender
         public static string XlsFilePath { 
             get
             {
-                return XlsFilePath;
+                return xlsFilePath;
             }
             set
             {
@@ -283,7 +290,7 @@ namespace MailSender
                     throw new Exception(exceptionMessage);
                 } else
                 {
-                    XlsFilePath = value;
+                    xlsFilePath = value;
                 }
             }
         }
@@ -293,7 +300,7 @@ namespace MailSender
         public static string BirthdayColumnNumber { 
             get
             {
-                return BirthdayColumnNumber;
+                return birthdayColumnNumber;
             }
             set 
             {
@@ -303,13 +310,13 @@ namespace MailSender
                     Logs.AddLogsCollected(exceptionMessage);
                     throw new Exception(exceptionMessage);
                 }
-                BirthdayColumnNumber = value;
+                birthdayColumnNumber = value;
             } 
         }
         public static string EmployeeNameColumnNumber {
             get
             {
-                return EmployeeNameColumnNumber;
+                return employeeNameColumnNumber;
             } 
             set
             {
@@ -319,7 +326,7 @@ namespace MailSender
                     Logs.AddLogsCollected(exceptionMessage);
                     throw new Exception(exceptionMessage);
                 }
-                EmployeeNameColumnNumber = value;
+                employeeNameColumnNumber = value;
             }
         }             
 

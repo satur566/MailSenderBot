@@ -8,7 +8,7 @@ namespace MailSender
     {
         static void Main(string[] args)
         {
-            Logs.AddLogsCollected($"\n\n\nCurrent user: {Environment.UserName}");
+            Logs.AddLogsCollected($"Current user: {Environment.UserName}");
             if (args.Length > 0)
             {
                 for (int i = 0; i < args.Length; i++)
